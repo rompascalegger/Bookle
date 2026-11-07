@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bookle</title>
+<meta name="description" content="A cozy shelving puzzle. Every book has a wish. Make them all happy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4e6cf; --bg2:#ead4b4; --wall:#f9efdf; --wallLine:#efdcc1;
+  --wood:#a86f43; --woodHi:#c48a58; --woodDk:#6e4426; --slot:#7a4c2d;
+  --ink:#3a2a48; --muted:#7d6a72; --card:#fffaf2; --cardLine:#ecd9bd;
+  --accent:#7b5cff; --accentHi:#9a82ff; --good:#ff5f8f; --bad:#e0794a;
+  --sun:rgba(255,214,102,.28); --quiet:rgba(70,40,90,.16); --shadow:0 6px 18px rgba(80,50,30,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1729; --bg2:#271f37; --wall:#2a2240; --wallLine:#332a4c;
+    --wood:#7b5236; --woodHi:#946545; --woodDk:#4a2f1d; --slot:#3a2618;
+    --ink:#f3e9ff; --muted:#b4a6c4; --card:#2f2645; --cardLine:#43385f;
+    --accent:#a58cff; --accentHi:#bfaeff; --sun:rgba(255,214,102,.14); --quiet:rgba(0,0,0,.25); --shadow:0 6px 18px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d1729; --bg2:#271f37; --wall:#2a2240; --wallLine:#332a4c;
+  --wood:#7b5236; --woodHi:#946545; --woodDk:#4a2f1d; --slot:#3a2618;
+  --ink:#f3e9ff; --muted:#b4a6c4; --card:#2f2645; --cardLine:#43385f;
+  --accent:#a58cff; --accentHi:#bfaeff; --sun:rgba(255,214,102,.14); --quiet:rgba(0,0,0,.25); --shadow:0 6px 18px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(ellipse at top,var(--bg2),var(--bg) 70%) fixed;background-color:var(--bg);color:var(--ink);
+  font-family:Fredoka,ui-rounded,"Segoe UI",system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+#app{max-width:560px;margin:0 auto;padding:10px 16px 28px;display:flex;flex-direction:column;gap:10px;min-height:100%}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-size:30px;font-weight:700;letter-spacing:-.5px;cursor:pointer;display:flex;align-items:center;background:none;border:0;padding:0}
+.logo i{margin-right:5px}
+.logo span{color:var(--accent)}
+.logo i{font-style:normal;display:inline-block;animation:bob 2.4s ease-in-out infinite}
+.hud{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{background:var(--card);border:2px solid var(--cardLine);border-radius:999px;padding:4px 10px;font-weight:600;font-size:14px;white-space:nowrap}
+.ib{width:36px;height:36px;border-radius:12px;border:2px solid var(--cardLine);background:var(--card);font-size:17px;display:grid;place-items:center;padding:0;transition:transform .12s}
+.ib:active{transform:scale(.9)}
+.ink-chip{color:var(--accent)}
+.ink-chip.bump{animation:bump .4s}
+.progress{position:relative;height:22px;border-radius:999px;background:var(--card);border:2px solid var(--cardLine);overflow:hidden}
+#progFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ff9cbc,var(--good));transition:width .4s cubic-bezier(.3,1.4,.6,1)}
+#progTxt{position:relative;display:block;text-align:center;font-size:13px;font-weight:600;line-height:18px}
+
+/* ---------- room ---------- */
+.room{background:repeating-linear-gradient(90deg,var(--wall) 0 38px,var(--wallLine) 38px 40px);border-radius:20px;padding:10px 10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.room.allhappy{animation:glow 1.6s ease-in-out infinite}
+.lights{display:none;position:absolute;left:0;right:0;top:0;height:16px;pointer-events:none}
+.lights.on{display:flex;justify-content:space-around}
+.lights b{width:7px;height:9px;border-radius:50%;margin-top:3px;animation:twinkle 1.8s infinite}
+.colhead{display:grid;gap:4px;margin:6px 10px 4px;font-size:10.5px;font-weight:600;color:var(--muted);text-align:center;white-space:nowrap}
+.colhead span{overflow:visible}
+.shelf{background:var(--woodDk);border-radius:14px;padding:6px;display:flex;flex-direction:column;gap:6px;border:4px solid var(--wood)}
+.row{display:grid;gap:4px;background:var(--slot);border-radius:6px;position:relative;box-shadow:inset 0 6px 10px rgba(0,0,0,.35)}
+.row::after{content:"";position:absolute;left:-6px;right:-6px;bottom:-6px;height:8px;background:linear-gradient(var(--woodHi),var(--wood));border-radius:3px;z-index:2}
+.slot{height:var(--slotH,92px);position:relative;display:flex;align-items:flex-end;justify-content:center;border-radius:4px}
+.slot.sunny{background:linear-gradient(160deg,var(--sun),transparent 80%)}
+.slot.quiet{background:linear-gradient(200deg,var(--quiet),transparent)}
+.slot.hover{background:rgba(255,255,255,.18);outline:2px dashed rgba(255,255,255,.6);outline-offset:-3px}
+.slot.target{outline:2px dashed rgba(255,255,255,.35);outline-offset:-3px}
+.decor{font-size:min(32px,8vw);line-height:1;margin-bottom:4px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));cursor:pointer;transition:transform .2s}
+.decor.cat{animation:catbob 3s ease-in-out infinite;transform-origin:bottom center}
+.decor.lamp{filter:drop-shadow(0 0 10px rgba(255,220,120,.9))}
+
+/* ---------- books ---------- */
+.book{--c:#ccc;position:relative;width:78%;max-width:46px;height:var(--h,80%);border-radius:7px 7px 3px 3px;
+  background:linear-gradient(90deg,rgba(0,0,0,.18),transparent 22%,rgba(255,255,255,.22) 40%,transparent 60%,rgba(0,0,0,.14)),var(--c);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.18),0 2px 3px rgba(0,0,0,.3);cursor:grab;touch-action:none;
+  transition:transform .18s cubic-bezier(.3,1.6,.5,1),filter .2s;z-index:1;margin-bottom:2px}
+.book::before,.book::after{content:"";position:absolute;left:0;right:0;height:3px;background:rgba(255,255,255,.45)}
+.book::before{top:18%}.book::after{bottom:14%}
+.book .wi{position:absolute;top:2px;left:0;right:0;text-align:center;font-size:11px;line-height:1.05;letter-spacing:-2px;pointer-events:none}
+.book .face{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:26px;height:16px;pointer-events:none}
+.book .eye{position:absolute;top:0;width:5px;height:6px;background:#2b1d2e;border-radius:50%;animation:blink 4s infinite}
+.book .eye.l{left:4px}.book .eye.r{right:4px}
+.book .mouth{position:absolute;left:50%;top:9px;width:9px;height:5px;transform:translateX(-50%);border:2px solid #2b1d2e;border-top:0;border-radius:0 0 9px 9px}
+.book.sad .mouth{top:11px;border:2px solid #2b1d2e;border-bottom:0;border-radius:9px 9px 0 0}
+.book.wait .mouth{width:6px;height:2px;border:0;background:#2b1d2e;border-radius:2px;top:11px}
+.book .blush{position:absolute;top:7px;width:5px;height:3px;border-radius:50%;background:rgba(255,80,120,.55);display:none}
+.book.happy .blush{display:block}.book .blush.l{left:0}.book .blush.r{right:0}
+.book .badge{position:absolute;top:-12px;right:-8px;font-size:15px;z-index:3;pointer-events:none;animation:pop .35s}
+.book.sel{transform:translateY(-8px) rotate(-3deg);filter:drop-shadow(0 0 0 #fff) drop-shadow(0 0 6px var(--accentHi));z-index:4}
+.book.happy{animation:happyWiggle .5s}
+.book.legend{background:linear-gradient(90deg,rgba(0,0,0,.15),transparent 20%,rgba(255,255,255,.55) 45%,transparent 65%),linear-gradient(160deg,#ffe58a,#f5b623 60%,#ffd75e);background-size:250% 100%,100% 100%;animation:shimmer 2.2s linear infinite}
+.book.ghost{position:fixed;pointer-events:none;z-index:999;transform:rotate(6deg) scale(1.12);transition:none;width:44px;height:86px}
+.book.dragging{opacity:.25}
+.book.shake{animation:shake .35s}
+.bubble{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--card);color:var(--ink);border:2px solid var(--cardLine);
+  border-radius:12px;padding:5px 9px;font-size:12px;font-weight:500;width:max-content;max-width:170px;z-index:20;pointer-events:none;box-shadow:var(--shadow);animation:bubble 2.2s forwards;text-align:center;line-height:1.2}
+.bubble::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--cardLine)}
+
+/* ---------- cart ---------- */
+.cartwrap{position:relative;padding-bottom:16px}
+.cart{min-height:96px;background:linear-gradient(var(--woodHi),var(--wood));border-radius:14px;border:3px solid var(--woodDk);display:flex;align-items:flex-end;
+  flex-wrap:wrap;justify-content:center;gap:10px 6px;padding:14px 10px 10px;box-shadow:var(--shadow)}
+.cart .book{flex:0 0 40px;height:76px}
+.cart.hover{outline:3px dashed var(--accent);outline-offset:2px}
+.cart .empty{margin:auto;color:#fff6e6;font-weight:600;font-size:14px;opacity:.9;text-align:center;align-self:center}
+.wheel{position:absolute;bottom:0;width:22px;height:22px;border-radius:50%;background:#3a2a20;border:4px solid #8c6b55}
+.wheel.l{left:30px}.wheel.r{right:30px}
+.cartlabel{position:absolute;top:-9px;left:14px;background:var(--card);border:2px solid var(--cardLine);border-radius:999px;font-size:11px;font-weight:600;padding:1px 8px;z-index:2}
+
+/* ---------- panel ---------- */
+.panel{background:var(--card);border:2px solid var(--cardLine);border-radius:18px;padding:12px 14px;min-height:118px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:flex-start}
+.panel .pb{flex:0 0 auto;position:relative;width:44px;height:90px;display:flex;align-items:flex-end}
+.panel .pb .book{width:44px;max-width:none;height:90px;cursor:default}
+.panel h3{margin:0 0 2px;font-size:17px;line-height:1.15}
+.panel .meta{display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 6px}
+.tag{font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--bg2)}
+.quote{font-size:14.5px;margin:0 0 6px;font-style:italic;line-height:1.3}
+.rule{font-size:12.5px;color:var(--muted);margin:2px 0;display:flex;gap:6px;align-items:baseline}
+.rule b{color:var(--ink);font-weight:600}
+.rule.ok b{color:var(--good)}
+.tip{font-size:14px;line-height:1.4;color:var(--muted)}
+.tip strong{color:var(--ink)}
+.actions{display:flex;gap:8px}
+.btn{flex:1;border:0;border-radius:14px;padding:12px 14px;font-size:16px;font-weight:600;background:var(--accent);color:#fff;box-shadow:0 4px 0 rgba(60,30,140,.45);transition:transform .1s,box-shadow .1s,opacity .2s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(60,30,140,.45)}
+.btn.sec{background:var(--card);color:var(--ink);border:2px solid var(--cardLine);box-shadow:0 4px 0 var(--cardLine);flex:0 0 auto}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.pulse{animation:pulse 1.2s infinite}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;background:rgba(30,18,40,.55);display:grid;place-items:center;z-index:500;padding:16px;animation:fade .2s}
+.overlay.hidden{display:none}
+.card{background:var(--card);border-radius:22px;padding:20px;width:100%;max-width:440px;max-height:88vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);animation:rise .35s cubic-bezier(.3,1.5,.5,1);position:relative}
+.card h2{margin:0 0 8px;font-size:24px;text-align:center}
+.card p{line-height:1.45}
+.card .x{position:absolute;top:10px;right:10px}
+.stars{font-size:38px;text-align:center;letter-spacing:4px;margin:4px 0}
+.stars span{display:inline-block;animation:starpop .5s backwards}
+.sumrow{display:flex;justify-content:space-between;padding:6px 2px;border-bottom:1px dashed var(--cardLine);font-size:15px}
+.sumrow b{color:var(--accent)}
+.shopitem{display:flex;gap:12px;align-items:center;padding:10px;border:2px solid var(--cardLine);border-radius:14px;margin-bottom:8px}
+.shopitem .em{font-size:30px;width:40px;text-align:center}
+.shopitem .tx{flex:1;font-size:13px;color:var(--muted);line-height:1.3}
+.shopitem .tx b{display:block;color:var(--ink);font-size:15px}
+.shopitem .btn{flex:0 0 auto;padding:8px 12px;font-size:14px}
+.shopitem.owned{opacity:.6}
+.dexg{margin:10px 0 4px;font-weight:600;display:flex;justify-content:space-between}
+.dexl{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.dexl div{font-size:12px;padding:5px 7px;border-radius:8px;background:var(--bg2);line-height:1.2}
+.dexl div.unk{opacity:.5;letter-spacing:2px}
+.share{white-space:pre;font-size:14px;background:var(--bg2);border-radius:12px;padding:10px;text-align:center;line-height:1.5;margin:8px 0}
+
+/* title */
+#title{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at top,var(--bg2),var(--bg) 70%);background-color:var(--bg)}
+#title.hidden{display:none}
+.tcard{max-width:420px;width:100%;text-align:center}
+.tlogo{font-size:64px;font-weight:700;letter-spacing:-2px;margin:0;line-height:1}
+.tlogo span{color:var(--accent)}
+.tsub{color:var(--muted);margin:6px 0 18px;font-size:16px}
+.tbooks{display:flex;justify-content:center;align-items:flex-end;gap:6px;height:100px;margin:10px 0 18px}
+.tbooks .book{flex:0 0 40px;cursor:pointer}
+.tbooks .book:nth-child(odd){animation:bob 2s ease-in-out infinite}
+.tbooks .book:nth-child(even){animation:bob 2s ease-in-out .5s infinite}
+.tbtn{display:block;width:100%;margin:10px 0;text-align:left;padding:14px 16px}
+.tbtn small{display:block;font-weight:400;font-size:13px;opacity:.85}
+.tfoot{margin-top:14px;font-size:13px;color:var(--muted)}
+
+#toasts{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:6px;width:min(92vw,420px);pointer-events:none}
+.toast{background:var(--card);border:2px solid var(--cardLine);border-radius:14px;padding:9px 12px;font-size:14px;box-shadow:var(--shadow);animation:toast 4.2s forwards;line-height:1.3}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:700;overflow:hidden}
+.p{position:absolute;font-size:18px;animation:fly 1s ease-out forwards}
+
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes catbob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scaleY(.96)}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.4)}100%{transform:scale(1)}}
+@keyframes happyWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) translateY(-6px)}50%{transform:rotate(6deg) translateY(-3px)}75%{transform:rotate(-3deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes shimmer{0%{background-position:150% 0,0 0}100%{background-position:-100% 0,0 0}}
+@keyframes bubble{0%{opacity:0;transform:translate(-50%,6px) scale(.8)}10%{opacity:1;transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-6px)}}
+@keyframes glow{0%,100%{box-shadow:var(--shadow),0 0 0 0 rgba(255,95,143,0)}50%{box-shadow:var(--shadow),0 0 0 6px rgba(255,95,143,.35)}}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes bump{50%{transform:scale(1.25)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(30px) scale(.95);opacity:0}}
+@keyframes starpop{from{transform:scale(0) rotate(-40deg)}}
+@keyframes toast{0%{opacity:0;transform:translateY(-10px)}8%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.6);opacity:0}}
+@media (max-width:400px){#app{padding:8px 12px 24px}.logo{font-size:24px}.ib{width:32px;height:32px;font-size:15px}.chip{font-size:12px;padding:3px 8px}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="logo" id="homeBtn" aria-label="Home"><i>📚</i>Book<span>le</span></button>
+    <div class="hud">
+      <span class="chip ink-chip" id="inkLbl" title="Ink">💧 0</span>
+      <button class="ib" id="dexBtn" title="Bookdex">📖</button>
+      <button class="ib" id="shopBtn" title="Shop">🛍️</button>
+      <button class="ib" id="sndBtn" title="Sound">🔊</button>
+      <button class="ib" id="helpBtn" title="How to play">?</button>
+    </div>
+  </header>
+  <div class="progress"><div id="progFill"></div><span id="progTxt"></span></div>
+  <div class="room" id="room">
+    <div class="lights" id="lights"></div>
+    <div class="colhead" id="colhead"></div>
+    <div class="shelf" id="shelf"></div>
+  </div>
+  <div class="cartwrap">
+    <span class="cartlabel" id="cartLabel">📦 Returns cart</span>
+    <div class="cart" id="cart"></div>
+    <span class="wheel l"></span><span class="wheel r"></span>
+  </div>
+  <div class="panel" id="panel"></div>
+  <div class="actions">
+    <button class="btn sec" id="hintBtn">💡 Hint</button>
+    <button class="btn" id="closeBtn">🌙 Close for the night</button>
+  </div>
+</div>
+
+<div id="title">
+  <div class="tcard">
+    <h1 class="tlogo">Book<span>le</span></h1>
+    <p class="tsub">Every book has a wish. Some are reasonable.</p>
+    <div class="tbooks" id="tbooks"></div>
+    <button class="btn tbtn" id="playDaily">☀️ Daily Bookle <small id="dailySub">One puzzle a day. Same for everyone.</small></button>
+    <button class="btn tbtn sec" id="playLib" style="width:100%">🏛️ My Library <small id="libSub">Endless days, ink, a cat.</small></button>
+    <div class="tfoot" id="tfoot"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="modal"><div class="card" id="modalCard"></div></div>
+<div id="toasts"></div>
+<div id="fx"></div>
+
+<script>
+(() => {
+"use strict";
+/* ================= data ================= */
+const GENRES = {
+  romance:{name:'Romance',emoji:'💕',color:'#f48fb4',blurb:'Swoons easily.',
+    happy:["I'm swooning!","Be still, my spine!","It's love at first shelf."],
+    sad:["My heart... it's breaking.","This is not my happily-ever-after.","How could you?! *dramatic sob*"],
+    titles:["Pride and Pudding","Love in the Time of Cholesterol","Kiss Me, Librarian","The Duke Who Loved Spreadsheets","Sense and Sensitivity Training","Romeo, Juliet & Gary","Hearts on the Late Fee","Love, Actually Maybe"]},
+  mystery:{name:'Mystery',emoji:'🔍',color:'#a084dc',blurb:'Suspects everyone. Including you.',
+    happy:["Case closed.","Elementary, my dear librarian.","The clues all point to... perfection."],
+    sad:["Something's fishy here.","I suspect foul shelving.","This placement is a crime."],
+    titles:["Who Ate the Last Cookie?","The Case of the Missing Sock","Murder on the Orient Espresso","The Hound of the Basket-villes","Death by Bookmark","The Butler Did Yoga","And Then There Were Nuns","The Curious Incident of the Dog at Brunch"]},
+  cookbook:{name:'Cookbook',emoji:'🍳',color:'#f7a65e',blurb:'Smells faintly of cinnamon.',
+    happy:["Chef's kiss!","Mmm, perfectly seasoned.","This shelf is well-done. Like toast."],
+    sad:["Overcooked placement.","This is half-baked.","Not my cup of tea. Literally."],
+    titles:["The Joy of Toast","Bake Me Up Before You Go-Go","Lord of the Onion Rings","Soup, Sweet Soup","Fifty Shades of Gravy","The Grapes of Rad","Crème Brûlée & Punishment","A Tale of Two Pizzas"]},
+  comics:{name:'Comics',emoji:'💥',color:'#f5cf45',blurb:'SPEAKS IN ALL CAPS.',
+    happy:["KA-POW! PERFECT!","HOLY SHELVES!","EXCELSIOR-ISH!"],
+    sad:["WHAT?! NO!!","THIS IS MY ORIGIN STORY OF SADNESS.","*sad onomatopoeia*"],
+    titles:["Captain Snacktime","Kapow Kittens","The Incredible Sulk","Nap Man Returns","Sidekick's Day Off","Super Grandma Vol. 3","Laser Llama","The Fantastic Fourteen"]},
+  poetry:{name:'Poetry',emoji:'🌙',color:'#73aaea',blurb:'Sighs. A lot.',
+    happy:["A shelf... so lovely... *sigh*","Roses are red, this spot is ideal.","I shall write an ode to this."],
+    sad:["Woe... this shelf...","O cruel, cruel plank.","*sighs in iambic pentameter*"],
+    titles:["Sighs, Volume II","Ode to a Damp Leaf","Sonnets for Puddles","I Wandered Lonely as a Cloud Server","Haikus About Socks","Moon, Again","Rhymes with Orange (Nothing)","Deep Thoughts, Shallow Bath"]},
+  scifi:{name:'Sci-Fi',emoji:'🚀',color:'#4ec4b6',blurb:'Beeps when nervous.',
+    happy:["Beep boop. Joy detected.","Optimal coordinates achieved.","To infinity and this shelf!"],
+    sad:["Error 404: happiness not found.","Houston, we have a shelf problem.","Beep. Boo. (sad beep)"],
+    titles:["The Hitchhiker's Guide to the Fridge","Space Pigeons","The Martian's Mum","Dune Buggy","Robots Need Naps Too","Moon Base Alpaca","Ender's Game Night","2001: A Space Snack"]},
+  fairy:{name:'Fairy Tale',emoji:'✨',color:'#9ddb82',blurb:'Believes in you. Deeply.',
+    happy:["Happily ever after!","Bibbidi-bobbidi-YES.","A shelf fit for a princess!"],
+    sad:["This is not my castle.","Once upon a time, I was happy.","*a single magical tear*"],
+    titles:["Goldilocks and the Three Lawyers","Rapunzel's Bad Hair Day","Jack and the Beanbag","Sleeping Beauty Hits Snooze","Cinderella's Lost Croc","The Frog Who Didn't Want a Kiss","Little Red Riding Hoodie","Hansel & Gretel Go Gluten-Free"]},
+  encyclopedia:{name:'Encyclopedia',emoji:'📚',color:'#bd8f66',blurb:'Well, actually...',
+    happy:["Acceptable. Statistically.","Correct. See page 1.","I approve, citation needed."],
+    sad:["Incorrect. See page 412.","Well, actually, NO.","This is factually upsetting."],
+    titles:["Everything, Vol. A–Aardvark","Actually, Volume 7","Facts Nobody Asked For","The Big Book of Footnotes","Rocks: A Thrilling History","1,001 Types of Beige","Atlas of Places I Haven't Been","Well, Technically…"]}
+};
+const GENRE_ORDER = ['romance','mystery','cookbook','comics','poetry','scifi','fairy','encyclopedia'];
+const DECOR = {
+  teacup:{name:'teacup',emoji:'🍵'}, lamp:{name:'lamp',emoji:'💡'}, fern:{name:'fern',emoji:'🪴'}, cat:{name:'cat',emoji:'🐈'}
+};
+const G = k => GENRES[k];
+const WISH = {
+  window:{mood:'Dramatic',icon:()=> '🪟',rule:()=> 'Leftmost column, by the window',
+    lines:["Window seat, please. I'm basically a houseplant.","I need sunlight on my spine. It's for my complexion.","I must gaze out the window. Dramatically.","Put me where the light hits. I've been practising my pose."],
+    ok:x=>x.c===0},
+  corner:{mood:'Shy',icon:()=> '🤫',rule:()=> 'Rightmost column, the quiet corner',
+    lines:["The quiet corner, please. People make me nervous.","Put me in the corner. I'm in a mood.","Corner seat. I want to seem mysterious.","Somewhere nobody will ever read me. Please."],
+    ok:x=>x.c===x.cols-1},
+  top:{mood:'Snooty',icon:()=> '⬆️',rule:()=> 'Top shelf',
+    lines:["Top shelf. I like to look down on people.","Up high! I was born to be out of reach.","Top shelf or I riot. Politely.","Elevate me. I'm a classic. (I'm from last year.)"],
+    ok:x=>x.r===0},
+  bottom:{mood:'Nervous',icon:()=> '⬇️',rule:()=> 'Bottom shelf',
+    lines:["Bottom shelf. I'm scared of heights.","Low, please. I get paper-sick.","Near the floor. Floors are honest.","Bottom shelf. Closer to the dogs. I love dogs."],
+    ok:x=>x.r===x.rows-1},
+  alone:{mood:'Introverted',icon:()=> '🙈',rule:()=> 'No books directly left or right',
+    lines:["No shelf-mates. I'm busy reading myself.","I need my personal space. One book of space, minimum.","Please, no neighbors. They breathe loudly.","Leave me alone. I'm a Limited Edition."],
+    ok:x=>!isB(x.L)&&!isB(x.R)},
+  social:{mood:'Chatty',icon:()=> '🤗',rule:()=> 'Books on BOTH sides (left and right)',
+    lines:["Books on BOTH sides! I have gossip.","I need two friends to lean on. Literally.","Sandwich me! I love a good book hug.","Surround me. I want an audience."],
+    ok:x=>isB(x.L)&&isB(x.R)},
+  like:{mood:'Smitten',icon:w=> '💘'+G(w.g).emoji,rule:w=> `Next to a ${G(w.g).name} (left or right)`,
+    lines:["Put me next to a {G}. We have history.","I have a crush on a {G}. Please. Help.","Seat me beside a {G}. They laugh at my jokes.","A {G} owes me money. Put me next to them."],
+    ok:x=>[x.L,x.R].some(n=>isB(n)&&n.genre===x.w.g)},
+  same:{mood:'Clingy',icon:w=> '👯',rule:(w,b)=> `Next to another ${G(b.genre).name}`,
+    lines:["I want to sit with my family. Another {S}!","Next to my own kind, please. Another {S}.","{S}s stick together. It's in the bylaws.","I get lonely without another {S} nearby."],
+    ok:x=>[x.L,x.R].some(n=>isB(n)&&n.genre===x.b.genre)},
+  dislike:{mood:'Petty',icon:w=> '🚫'+G(w.g).emoji,rule:w=> `NOT next to any ${G(w.g).name}`,
+    lines:["Keep me away from {G}s. They spoil endings.","Not next to a {G}. We had a falling-out in 1987.","No {G}s beside me. They hum.","A {G} once dog-eared me. I remember."],
+    ok:x=>![x.L,x.R].some(n=>isB(n)&&n.genre===x.w.g)},
+  near:{mood:'Cozy',icon:w=> DECOR[w.d].emoji,rule:w=> `Next to the ${DECOR[w.d].name} (left or right)`,
+    lines:{teacup:["Near the teacup! I take my plot with two sugars.","I want to be close to the snacks. Crumbs welcome.","Tea and a good me. Perfect evening."],
+           lamp:["Next to the lamp. I'm afraid of the dark-ish.","Lamp side, please. My font is very small.","I want the glow. I'm a glow-up kind of book."],
+           fern:["Beside the fern. We're both basically trees!","Plant buddy, please. We're distant cousins.","Put me by the fern. It's a great listener."],
+           cat:["Next to the cat! I want a purr-sonal heater.","Cat neighbor, please. It's the only one who gets me.","Beside the kitty. I'll let it sit on me. Probably."]},
+    ok:x=>[x.L,x.R].some(n=>n&&n.t==='decor'&&n.kind===x.w.d)},
+  nocat:{mood:'Sneezy',icon:()=> '🤧',rule:()=> 'NOT next to the cat',
+    lines:["NOT near the cat. I'm allergic. Can books be allergic? Yes.","Keep that cat away. It looked at my pages funny.","No cat! Last time it sat on chapter four for a week."],
+    ok:x=>![x.L,x.R].some(n=>n&&n.t==='decor'&&n.kind==='cat')},
+  above:{mood:'Needy',icon:w=> '👇'+G(w.g).emoji,rule:w=> `Directly on top of a ${G(w.g).name} (in the slot right below)`,
+    lines:["Put me right on top of a {G}. I like to be supported.","I want to sit above a {G}. Emotionally AND physically.","Stack me over a {G}. I trust them with my weight."],
+    ok:x=>isB(x.B)&&x.B.genre===x.w.g}
+};
+const TYPEW = {window:1,corner:1,top:.9,bottom:.9,alone:1,social:1.1,like:1.3,same:1.1,dislike:.35,near:1.2,nocat:.5,above:1.3};
+const EXCUSES = ["I was on holiday in a different genre.","A toddler was using me as a hat.","I got stuck in a sequel.","The dog read me first.","I fell into a plot hole.","I was helping a detective. Off the record.","I took the scenic route through the sofa cushions.","My bookmark and I needed some time apart.","I was in the bath. Don't ask.","I joined a book club. They wouldn't let me leave.","Someone pressed a flower in me and I needed to process that.","I was propping up a wobbly table. It needed me."];
+const TIPS = ["Tap a book to hear its wish. Drag it onto a shelf.","Books only care about <strong>left and right</strong> neighbors (and 👇 cares about the slot below).","Swap two books by dragging one onto the other.","Drag a book back to the cart if it's being a diva.","Placing a book can upset its neighbors. Check the 💢!","Golden books are <strong>Legendary</strong>: two wishes, lots of ink.","The library cat is a menace. A beloved menace.","Every happy book goes in your 📖 Bookdex. Collect all 64!"];
+const SHOP = [
+  {id:'lamp',name:'Reading Lamp',emoji:'💡',cost:25,desc:"Some books are afraid of the dark-ish. Unlocks lamp wishes."},
+  {id:'fern',name:'Potted Fern',emoji:'🪴',cost:50,desc:"Paper and plants: distant cousins. Unlocks plant wishes."},
+  {id:'lights',name:'Fairy Lights',emoji:'✨',cost:75,desc:"Twinkly. Cozy. +15% ink forever."},
+  {id:'cat',name:'Library Cat',emoji:'🐈',cost:110,desc:"Pettable. Knocks books off shelves. Loved by some, sneezed at by others."},
+  {id:'wide',name:'Wider Shelves',emoji:'↔️',cost:150,desc:"+1 column. More books, more ink, more drama."},
+  {id:'bookmark',name:'Golden Bookmark',emoji:'🔖',cost:260,desc:"×1.5 ink. Books whisper about it."},
+  {id:'tall',name:'Extra Shelf',emoji:'↕️',cost:340,desc:"+1 shelf row. The top shelf gets even snobbier."},
+  {id:'wide2',name:'Even Wider Shelves',emoji:'🏛️',cost:500,desc:"+1 more column. A truly grand library.",req:'wide'}
+];
+const ALL_TITLES = GENRE_ORDER.reduce((a,g)=>a+G(g).titles.length,0);
+
+/* ================= utils ================= */
+const $ = s=>document.querySelector(s);
+const isB = n=>n&&n.t==='book';
+const store = {
+  get(k,d){try{const v=localStorage.getItem('bookle.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('bookle.'+k,JSON.stringify(v))}catch(e){}}
+};
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const pick=(arr,rng=Math.random)=>arr[Math.floor(rng()*arr.length)];
+function shuffle(a,rng=Math.random){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function wpick(items,weights,rng){const s=weights.reduce((a,b)=>a+b,0);let r=rng()*s;for(let i=0;i<items.length;i++){r-=weights[i];if(r<=0)return items[i]}return items[items.length-1]}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const EPOCH = Date.UTC(2026,10,7);
+function dailyNum(){const d=new Date();return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-EPOCH)/864e5)+1}
+
+/* ================= persistence ================= */
+const P = Object.assign({ink:10,day:1,owned:['teacup'],streak:0,best:0,dex:[],help:false,sound:true,happyTotal:0,perfects:0},store.get('profile',{}));
+const D = Object.assign({last:0,streak:0,best:0,played:0,res:{}},store.get('daily',{}));
+const saveP=()=>store.set('profile',P), saveD=()=>store.set('daily',D);
+const owns=id=>P.owned.includes(id);
+
+/* ================= sound ================= */
+let AC=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,t0,dur,type,vol,f2){
+  if(!P.sound)return;const a=ac();if(!a)return;const t=a.currentTime+t0;
+  const o=a.createOscillator(),g=a.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.12,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.03);
+}
+const SFX={
+  pick(){tone(620,0,.08,'triangle',.1,860)},
+  drop(){tone(320,0,.1,'triangle',.14,210)},
+  happy(){[660,880,1320].forEach((f,i)=>tone(f,i*.06,.2,'sine',.11))},
+  grump(){tone(210,0,.25,'square',.04,120)},
+  ripple(){tone(520,0,.12,'sine',.06,700)},
+  perfect(){[523,659,784,1046,1318,1568].forEach((f,i)=>tone(f,i*.09,.4,'sine',.1))},
+  purr(){for(let i=0;i<7;i++)tone(68,i*.08,.07,'sawtooth',.035,55)},
+  coin(){tone(988,0,.07,'square',.04);tone(1319,.07,.14,'square',.04)},
+  nope(){tone(160,0,.14,'triangle',.12,110)},
+  meow(){tone(700,0,.12,'sine',.08,1100);tone(1100,.12,.25,'sine',.07,600)}
+};
+
+/* ================= game state ================= */
+let S=null; // current puzzle
+function cellAt(i){return (i<0||i>=S.grid.length)?null:S.grid[i]}
+function ctx(b,idx,w){
+  const r=Math.floor(idx/S.cols),c=idx%S.cols;
+  return {b,w,r,c,rows:S.rows,cols:S.cols,
+    L:c>0?S.grid[idx-1]:null, R:c<S.cols-1?S.grid[idx+1]:null, B:r<S.rows-1?S.grid[idx+S.cols]:null};
+}
+const wishOk=(b,idx,w)=>WISH[w.type].ok(ctx(b,idx,w));
+const isHappy=b=>b.pos>=0&&b.wishes.every(w=>wishOk(b,b.pos,w));
+// evaluate b as if it were at idx (swapping occupant into b's old spot)
+function hypothetical(b,idx,fn){
+  const from=b.pos, occ=S.grid[idx];
+  if(from>=0)S.grid[from]=null;
+  if(isB(occ)&&from>=0)S.grid[from]=occ;
+  S.grid[idx]=b;
+  const res=fn();
+  S.grid[idx]=occ; if(from>=0)S.grid[from]=b;
+  return res;
+}
+
+/* ---------- generator (solvable by construction) ---------- */
+function generate(cfg,rng){
+  const {rows,cols,decor,genres,n,legend,diff}=cfg;
+  const total=rows*cols;
+  S={rows,cols,grid:Array(total).fill(null),books:[],cart:[],moves:0,hints:0,sel:null,mode:cfg.mode,num:cfg.num,catDone:false,done:false,wasAll:false};
+  const order=shuffle([...Array(total).keys()],rng);
+  decor.forEach(k=>{S.grid[order.pop()]={t:'decor',kind:k}});
+  const free=order;
+  // books
+  const used=new Set(), dex=new Set(P.dex);
+  for(let i=0;i<n;i++){
+    const g=pick(genres,rng);
+    let pool=G(g).titles.filter(t=>!used.has(t));
+    if(!pool.length)pool=G(g).titles;
+    if(cfg.mode==='lib'){const fresh=pool.filter(t=>!dex.has(t));if(fresh.length&&rng()<.65)pool=fresh}
+    const title=pick(pool,rng);used.add(title);
+    S.books.push({t:'book',id:i,genre:g,title,wishes:[],legend:rng()<legend,h:62+Math.floor(rng()*26),pos:-1,happy:false});
+  }
+  // solution placement
+  S.books.forEach((b,i)=>{b.pos=free[i];S.grid[free[i]]=b});
+  const inPlay=[...new Set(S.books.map(b=>b.genre))];
+  const freeSlots=[...Array(total).keys()].filter(i=>!(S.grid[i]&&S.grid[i].t==='decor'));
+  const usedT={};
+  shuffle([...S.books],rng).forEach(b=>{
+    const cands=[];
+    ['window','corner','top','bottom','alone','social','same'].forEach(t=>cands.push({type:t}));
+    inPlay.forEach(g=>{
+      if(g!==b.genre)cands.push({type:'like',g});
+      const others=S.books.filter(o=>o!==b&&o.genre===g).length;
+      if(others)cands.push({type:'dislike',g});
+      cands.push({type:'above',g});
+    });
+    decor.forEach(d=>cands.push({type:'near',d}));
+    if(decor.includes('cat'))cands.push({type:'nocat'});
+    const sat=cands.filter(w=>wishOk(b,b.pos,w));
+    const weights=sat.map(w=>{
+      const home=b.pos;S.grid[home]=null;
+      let cnt=0;freeSlots.forEach(j=>{if(j===home||!S.grid[j]){S.grid[j]=b;if(wishOk(b,j,w))cnt++;S.grid[j]=j===home?null:null}});
+      S.grid[home]=b;
+      return TYPEW[w.type]*Math.pow(1/Math.max(1,cnt),diff)/(1+(usedT[w.type]||0)*.9);
+    });
+    const w1=wpick(sat,weights,rng);b.wishes.push(w1);usedT[w1.type]=(usedT[w1.type]||0)+1;
+    if(b.legend){
+      const rest=sat.filter(w=>w.type!==w1.type),rw=rest.map(w=>weights[sat.indexOf(w)]);
+      if(rest.length){const w2=wpick(rest,rw,rng);b.wishes.push(w2);usedT[w2.type]=(usedT[w2.type]||0)+1}
+      else b.legend=false;
+    }
+    b.line=lineFor(b.wishes[0],b,rng);
+    if(b.wishes[1])b.line+=' Also: '+lineFor(b.wishes[1],b,rng).replace(/^./,c=>c.toLowerCase());
+  });
+  S.sol={};S.books.forEach(b=>{S.sol[b.id]=b.pos;S.grid[b.pos]=null;b.pos=-1});
+  S.cart=shuffle(S.books.map(b=>b.id),rng);
+}
+function lineFor(w,b,rng){
+  const L=WISH[w.type].lines;const arr=Array.isArray(L)?L:L[w.d];
+  return pick(arr,rng).replace(/\{G\}/g,w.g?G(w.g).name:'').replace(/\{S\}/g,G(b.genre).name);
+}
+
+/* ---------- configs ---------- */
+function libCfg(){
+  const rows=3+(owns('tall')?1:0), cols=5+(owns('wide')?1:0)+(owns('wide2')?1:0);
+  const decor=['teacup','lamp','fern','cat'].filter(owns);
+  const nG=Math.min(8,4+Math.floor((P.day-1)/2));
+  const free=rows*cols-decor.length;
+  const n=Math.min(Math.floor(free*.72),3+P.day);
+  return {mode:'lib',rows,cols,decor,genres:GENRE_ORDER.slice(0,nG),n,legend:P.day>=3?.09:0,diff:Math.min(1.5,.55+P.day*.09)};
+}
+function dailyCfg(num){
+  return {mode:'daily',num,rows:3,cols:6,decor:['teacup','lamp','fern','cat'],genres:GENRE_ORDER.slice(0,6),n:10,legend:.1,diff:1.25};
+}
+
+/* ================= rendering ================= */
+const shelfEl=$('#shelf'),cartEl=$('#cart'),panelEl=$('#panel');
+function bookEl(b,where){
+  const el=document.createElement('div');
+  el.className='book'+(b.legend?' legend':'');
+  el.style.setProperty('--c',G(b.genre).color);
+  el.style.setProperty('--h',b.h+'%');
+  el.dataset.id=b.id;
+  const st=where==='shelf'?(b.happy?'happy':'sad'):(where==='panel'?(b.pos<0?'wait':(b.happy?'happy':'sad')):'wait');
+  el.classList.add(st);
+  el.innerHTML=`<div class="wi">${b.wishes.map(w=>WISH[w.type].icon(w,b)).join('')}</div><div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>`+
+    (where==='shelf'?`<span class="badge">${b.happy?'💖':'💢'}</span>`:'');
+  if(S.sel===b.id&&where!=='panel')el.classList.add('sel');
+  return el;
+}
+function render(){
+  const {rows,cols}=S;
+  const slotH=Math.min(92,Math.max(70,Math.floor((Math.min(window.innerWidth,560)-60)/cols*1.75)));
+  document.documentElement.style.setProperty('--slotH',slotH+'px');
+  const ch=$('#colhead');ch.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  ch.innerHTML=Array.from({length:cols},(_,c)=>`<span>${c===0?'🪟 window':c===cols-1?'🤫 quiet':''}</span>`).join('');
+  shelfEl.innerHTML='';
+  for(let r=0;r<rows;r++){
+    const row=document.createElement('div');row.className='row';row.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    for(let c=0;c<cols;c++){
+      const i=r*cols+c,cell=S.grid[i];
+      const s=document.createElement('div');s.className='slot'+(c===0?' sunny':'')+(c===cols-1?' quiet':'');s.dataset.idx=i;
+      if(S.sel!=null&&!cell)s.classList.add('target');
+      if(isB(cell))s.appendChild(bookEl(cell,'shelf'));
+      else if(cell&&cell.t==='decor'){const d=document.createElement('div');d.className='decor '+cell.kind;d.textContent=DECOR[cell.kind].emoji;d.dataset.decor=cell.kind;s.appendChild(d)}
+      row.appendChild(s);
+    }
+    shelfEl.appendChild(row);
+  }
+  cartEl.innerHTML='';
+  S.cart.forEach(id=>cartEl.appendChild(bookEl(S.books[id],'cart')));
+  if(!S.cart.length)cartEl.innerHTML=`<div class="empty">${allHappy()?'Everyone is happy! ✨':'Cart empty! Drop books here to un-shelve them.'}</div>`;
+  // lights
+  const li=$('#lights');li.classList.toggle('on',S.mode==='lib'&&owns('lights'));
+  if(!li.children.length){const cs=['#ff8fb1','#ffd166','#8fd3ff','#b4f08c','#c9a0ff'];li.innerHTML=Array.from({length:14},(_,i)=>`<b style="background:${cs[i%5]};animation-delay:${i*.13}s"></b>`).join('')}
+  renderHud();renderPanel();
+}
+function renderHud(){
+  const placed=S.books.filter(b=>b.pos>=0).length,happy=S.books.filter(b=>b.happy).length,n=S.books.length;
+  $('#progFill').style.width=(happy/n*100)+'%';
+  $('#progTxt').textContent=(S.mode==='daily'?`Daily #${S.num}`:`Day ${P.day}`)+` · 💖 ${happy} / ${n} happy`+(S.mode==='daily'?` · ${S.moves} moves`:'');
+  $('#inkLbl').textContent='💧 '+P.ink;
+  $('#inkLbl').style.display=S.mode==='daily'?'none':'';
+  $('#shopBtn').style.display=S.mode==='daily'?'none':'';
+  $('#sndBtn').textContent=P.sound?'🔊':'🔇';
+  $('#cartLabel').textContent=S.mode==='daily'?'📦 Today\'s returns':`📦 Returns cart · ${S.cart.length}`;
+  const cb=$('#closeBtn');
+  if(S.mode==='daily'){cb.textContent=S.done?'📤 Share result':'✨ Make everyone happy';cb.disabled=!S.done;cb.classList.toggle('pulse',S.done)}
+  else{cb.textContent=S.cart.length?`📦 ${S.cart.length} book${S.cart.length>1?'s':''} left`:(happy===n?'🌙 Close for the night ✨':'🌙 Close for the night');cb.disabled=S.cart.length>0;cb.classList.toggle('pulse',!S.cart.length&&happy===n)}
+  $('#hintBtn').textContent=S.mode==='daily'?'💡 Hint':'💡 Hint · 5💧';
+  $('#hintBtn').disabled=S.done;
+  $('#room').classList.toggle('allhappy',placed===n&&happy===n);
+}
+let tipI=0;
+function renderPanel(){
+  const b=S.sel!=null?S.books[S.sel]:null;
+  if(!b){
+    panelEl.innerHTML=`<div class="tip">📜 <strong>Librarian's note:</strong><br>${TIPS[tipI%TIPS.length]}</div>`;return;
+  }
+  const where=b.pos<0?'Waiting on the cart':(b.happy?'Happy on the shelf 💖':'Grumpy on the shelf 💢');
+  const rules=b.wishes.map(w=>{const ok=b.pos>=0&&wishOk(b,b.pos,w);return `<div class="rule ${ok?'ok':''}"><span>${WISH[w.type].icon(w,b)}</span><span><b>${ok?'✓ ':''}${esc(WISH[w.type].rule(w,b))}</b></span></div>`}).join('');
+  panelEl.innerHTML=`<div class="pb"></div><div style="flex:1;min-width:0"><h3>${b.legend?'🌟 ':''}${esc(b.title)}</h3>
+    <div class="meta"><span class="tag" style="background:${G(b.genre).color}55">${G(b.genre).emoji} ${G(b.genre).name}</span>${b.wishes.map(w=>`<span class="tag">${WISH[w.type].mood}</span>`).join('')}${b.legend?'<span class="tag" style="background:#ffd75e88">Legendary</span>':''}</div>
+    <p class="quote">“${esc(b.line)}”</p>${rules}<div class="rule" style="margin-top:4px">${where}</div></div>`;
+  panelEl.querySelector('.pb').appendChild(bookEl(b,'panel'));
+}
+function allHappy(){return S.books.every(b=>b.happy)}
+
+/* ================= fx ================= */
+function rectOf(id){const el=document.querySelector(`#shelf .book[data-id="${id}"],#cart .book[data-id="${id}"]`);return el?el.getBoundingClientRect():null}
+function burst(x,y,emojis,n){
+  const fx=$('#fx');
+  for(let i=0;i<n;i++){
+    const p=document.createElement('span');p.className='p';p.textContent=pick(emojis);
+    const a=Math.random()*Math.PI*2,d=40+Math.random()*70;
+    p.style.left=x+'px';p.style.top=y+'px';
+    p.style.setProperty('--dx',Math.cos(a)*d+'px');p.style.setProperty('--dy',(Math.sin(a)*d-40)+'px');p.style.setProperty('--rot',(Math.random()*120-60)+'deg');
+    p.style.animationDuration=(.7+Math.random()*.6)+'s';
+    fx.appendChild(p);setTimeout(()=>p.remove(),1400);
+  }
+}
+function say(id,text){
+  const el=document.querySelector(`#shelf .book[data-id="${id}"],#cart .book[data-id="${id}"]`);if(!el)return;
+  document.querySelectorAll('.bubble').forEach(x=>x.remove());
+  const bu=document.createElement('div');bu.className='bubble';bu.textContent=text;el.appendChild(bu);setTimeout(()=>bu.remove(),2300);
+}
+function toast(html,ms){
+  const t=document.createElement('div');t.className='toast';t.innerHTML=html;if(ms)t.style.animationDuration=ms+'ms';
+  $('#toasts').appendChild(t);setTimeout(()=>t.remove(),ms||4300);
+}
+function bumpInk(){const el=$('#inkLbl');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}
+
+/* ================= moves ================= */
+const GENERIC_HAPPY=["Ahh, perfect.","Ooh!","*happy page flutter*","This is the one.","I could live here.","10/10 shelf.","*purrs in paper*","Finally, someone who listens."];
+const GENERIC_SAD=["Hmph.","Excuse me?","This is NOT what I asked for.","*passive-aggressive rustle*","I'll write a strongly-worded footnote.","Wrong. But I appreciate the effort.","Did you even read my blurb?"];
+function evalAll(){const before={};S.books.forEach(b=>{before[b.id]=b.happy;b.happy=isHappy(b)});return before}
+function place(id,idx){
+  const b=S.books[id],cell=S.grid[idx];
+  if(cell&&cell.t==='decor'){SFX.nope();if(cell.kind==='cat')toast('🐈 The cat refuses to move. It was here first.');return}
+  if(b.pos===idx){S.sel=null;render();return}
+  const from=b.pos;
+  if(isB(cell)){
+    if(from>=0){S.grid[from]=cell;cell.pos=from}
+    else{cell.pos=-1;S.cart.splice(S.cart.indexOf(id),1,cell.id)}
+  } else if(from<0)S.cart.splice(S.cart.indexOf(id),1);
+  else S.grid[from]=null;
+  S.grid[idx]=b;b.pos=idx;S.moves++;S.sel=null;
+  afterMove(b,isB(cell)?cell:null);
+}
+function toCart(id){
+  const b=S.books[id];if(b.pos<0)return;
+  S.grid[b.pos]=null;b.pos=-1;S.cart.push(id);S.moves++;S.sel=null;SFX.drop();
+  afterMove(null,null);
+}
+function afterMove(b,swapped){
+  const before=evalAll();
+  render();
+  if(b){
+    const r=rectOf(b.id);
+    if(b.happy){
+      SFX.happy();
+      const gl=G(b.genre).happy.concat(GENERIC_HAPPY);say(b.id,pick(gl));
+      if(r)burst(r.left+r.width/2,r.top,['💖','✨','💕','⭐'],b.legend?14:7);
+      const el=document.querySelector(`#shelf .book[data-id="${b.id}"]`);if(el){el.classList.remove('happy');void el.offsetWidth;el.classList.add('happy')}
+    } else {
+      SFX.grump();say(b.id,pick(G(b.genre).sad.concat(GENERIC_SAD)));
+      const el=document.querySelector(`#shelf .book[data-id="${b.id}"]`);if(el)el.classList.add('shake');
+    }
+  }
+  // ripple reactions on neighbors whose mood changed
+  let rip=0;
+  S.books.forEach(o=>{
+    if(o===b||o.pos<0||before[o.id]===o.happy)return;
+    const r=rectOf(o.id);if(!r)return;rip++;
+    if(o.happy){burst(r.left+r.width/2,r.top,['💖','✨'],4)}
+    else{burst(r.left+r.width/2,r.top,['💢'],2);const el=document.querySelector(`#shelf .book[data-id="${o.id}"]`);if(el)el.classList.add('shake');if(!b||rip===1)setTimeout(()=>say(o.id,pick(["Hey! I was comfy!","Ugh, new neighbor.","Who invited THEM?","I liked it before.","Rude."])),b?700:0)}
+  });
+  if(rip&&b)setTimeout(SFX.ripple,180);
+  checkState();
+}
+function checkState(){
+  const all=S.cart.length===0&&allHappy();
+  if(all&&!S.wasAll){
+    S.wasAll=true;setTimeout(()=>{SFX.perfect();const r=$('#room').getBoundingClientRect();for(let i=0;i<5;i++)setTimeout(()=>burst(r.left+Math.random()*r.width,r.top+Math.random()*r.height*.8,['💖','✨','🎉','📚','⭐'],8),i*120)},250);
+    if(S.mode==='daily'&&!S.done){S.done=true;setTimeout(finishDaily,1300)}
+    else if(S.mode==='lib')toast('✨ <b>Everyone is happy!</b> Close for the night to collect a Perfect Day bonus.');
+  } else if(!all)S.wasAll=false;
+  if(S.mode==='lib'&&!S.cart.length&&!S.catDone&&owns('cat')){
+    S.catDone=true;
+    if(Math.random()<.55){
+      setTimeout(()=>{
+        const vict=S.books.filter(b=>b.pos>=0&&!b.legend);if(!vict.length)return;
+        const v=pick(vict);S.grid[v.pos]=null;v.pos=-1;S.cart.push(v.id);
+        SFX.meow();evalAll();S.wasAll=false;render();
+        toast(`🐈 <b>The cat</b> knocked <i>${esc(v.title)}</i> off the shelf. ${pick(["It looked you dead in the eye while doing it.","Then it sat in the empty spot. Briefly.","It shows no remorse.","Classic cat."])}`);
+        setTimeout(()=>say(v.id,pick(["I was MID-CHAPTER!","Unbelievable. UNBELIEVABLE.","I have fur on my cover now.","Put me back. With dignity."])),300);
+      },1100);
+    }
+  }
+}
+
+/* ================= input ================= */
+let drag=null;
+function slotAt(x,y){const el=document.elementFromPoint(x,y);if(!el)return null;return el.closest('.slot')||(el.closest('.cart,.cartwrap')?'cart':null)}
+document.addEventListener('pointerdown',e=>{
+  const bk=e.target.closest('#shelf .book,#cart .book');
+  if(bk){drag={id:+bk.dataset.id,x:e.clientX,y:e.clientY,el:bk,moved:false,ghost:null,last:null};e.preventDefault();return}
+  drag=null;
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7){
+    drag.moved=true;ac();SFX.pick();
+    const b=S.books[drag.id];
+    const g=bookEl(b,'cart');g.classList.add('ghost');g.style.setProperty('--h','86px');document.body.appendChild(g);drag.ghost=g;
+    drag.el.classList.add('dragging');
+    if(S.sel!==drag.id){S.sel=drag.id;renderPanel()}
+  }
+  if(drag.moved){
+    drag.ghost.style.left=(e.clientX-22)+'px';drag.ghost.style.top=(e.clientY-60)+'px';
+    const t=slotAt(e.clientX,e.clientY);
+    if(t!==drag.last){
+      document.querySelectorAll('.slot.hover,.cart.hover').forEach(x=>x.classList.remove('hover'));
+      const b=S.books[drag.id];let face='wait';
+      if(t&&t!=='cart'){t.classList.add('hover');const idx=+t.dataset.idx,c=S.grid[idx];
+        if(!(c&&c.t==='decor'))face=hypothetical(b,idx,()=>b.wishes.every(w=>wishOk(b,idx,w)))?'happy':'sad'}
+      else if(t==='cart')cartEl.classList.add('hover');
+      drag.ghost.classList.remove('happy','sad','wait');drag.ghost.classList.add(face);
+      drag.last=t;
+    }
+  }
+});
+document.addEventListener('pointerup',e=>{
+  if(!drag)return;const d=drag;drag=null;
+  document.querySelectorAll('.slot.hover,.cart.hover').forEach(x=>x.classList.remove('hover'));
+  if(d.moved){
+    d.ghost.remove();
+    const t=slotAt(e.clientX,e.clientY);
+    if(t==='cart'){if(S.books[d.id].pos>=0)toCart(d.id);else{S.sel=null;render()}}
+    else if(t){place(d.id,+t.dataset.idx)}
+    else render();
+    return;
+  }
+  // tap
+  ac();
+  if(S.sel===d.id){S.sel=null}else{S.sel=d.id;SFX.pick();say(d.id,pick(["Hi!","Oh! Hello.","Me? Pick me!","*nervous rustle*","Finally, attention."]))}
+  render();
+  if(S.sel!=null)setTimeout(()=>say(d.id,S.books[d.id].line.length>70?S.books[d.id].line.slice(0,68)+'…':S.books[d.id].line),10);
+});
+document.addEventListener('pointercancel',()=>{if(drag&&drag.ghost)drag.ghost.remove();drag=null;render()});
+shelfEl.addEventListener('click',e=>{
+  const dc=e.target.closest('.decor');
+  if(dc){
+    const r=dc.getBoundingClientRect();
+    if(dc.dataset.decor==='cat'){SFX.purr();burst(r.left+r.width/2,r.top,['💗','💤','🐾'],6);
+      if(S.mode==='lib'&&!S.petted){S.petted=true;P.ink+=1;saveP();renderHud();bumpInk();toast('🐈 Purrrr. The cat gives you 1 💧 (it found it under the sofa).')}
+      else toast(pick(['🐈 Purrrrr.','🐈 The cat allows this.','🐈 *slow blink*','🐈 Mrrp?','🐈 The cat is judging your shelving. Lovingly.']),2200)}
+    else if(dc.dataset.decor==='teacup'){tone(1400,0,.15,'sine',.05);toast(pick(['🍵 Still warm. Somehow always warm.','🍵 The tea is chamomile. The tea is always chamomile.','🍵 Please do not spill on the Cookbooks.']),2200)}
+    else if(dc.dataset.decor==='lamp'){tone(900,0,.05,'square',.04);dc.style.filter=dc.style.filter?'':'grayscale(1) brightness(.6)';setTimeout(()=>dc.style.filter='',600)}
+    else if(dc.dataset.decor==='fern'){toast(pick(['🪴 The fern rustles approvingly.','🪴 The fern is thriving. Unlike your houseplants.','🪴 Its name is Gerald.']),2200)}
+    return;
+  }
+  const slot=e.target.closest('.slot');
+  if(slot&&S.sel!=null&&!e.target.closest('.book')){const c=S.grid[+slot.dataset.idx];if(!c)place(S.sel,+slot.dataset.idx)}
+});
+$('.cartwrap').addEventListener('click',e=>{if(e.target.closest('.book'))return;if(S.sel!=null&&S.books[S.sel].pos>=0)toCart(S.sel)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#modal').classList.contains('hidden'))closeModal();else if(S&&S.sel!=null){S.sel=null;render()}}});
+
+/* ================= hints ================= */
+$('#hintBtn').addEventListener('click',()=>{
+  if(S.done)return;
+  if(S.mode==='lib'){if(P.ink<5){SFX.nope();toast('💧 Not enough ink for a hint. The books suggest… reading them.');return}}
+  // choose a book not at its solution
+  let cands=S.books.filter(b=>!b.happy&&b.pos!==S.sol[b.id]);
+  if(!cands.length)cands=S.books.filter(b=>b.pos!==S.sol[b.id]);
+  if(!cands.length){toast('💡 Everything is already where it should be!');return}
+  cands.sort((a,b)=>(a.pos<0?0:1)-(b.pos<0?0:1));
+  const b=cands[0],target=S.sol[b.id],occ=S.grid[target];
+  if(S.mode==='lib'){P.ink-=5;saveP()}
+  S.hints++;
+  // move occupant to cart first, so the swap is clean
+  if(isB(occ)&&occ!==b){S.grid[target]=null;occ.pos=-1;S.cart.push(occ.id)}
+  place(b.id,target);S.moves--; // hints don't count as moves
+  renderHud();
+  toast(`💡 <i>${esc(b.title)}</i> whispers: "${pick(["I belong here. Trust me.","This spot. It's destiny.","Psst. Here."])}"`,2600);
+});
+
+/* ================= day flow ================= */
+function startLib(){
+  const rng=Math.random;
+  generate(libCfg(),rng);S.petted=false;
+  $('#title').classList.add('hidden');render();
+  const r=S.books[0];
+  setTimeout(()=>toast(`📬 <i>${esc(pick(S.books).title)}</i> was returned ${pick(['3 weeks','11 days','a fortnight','6 months','one (1) leap year'])} late. Excuse: "${pick(EXCUSES)}"`,5200),500);
+  const nG=Math.min(8,4+Math.floor((P.day-1)/2));
+  if(P.day>1&&(P.day-1)%2===0&&nG<=8&&nG>4&&!P['g'+nG]){P['g'+nG]=1;saveP();const g=G(GENRE_ORDER[nG-1]);setTimeout(()=>toast(`🎉 <b>New genre in town:</b> ${g.emoji} ${g.name}! ${g.blurb}`,5200),1600)}
+  if(!P.help){P.help=true;saveP();setTimeout(showHelp,300)}
+}
+function closeDay(){
+  if(S.mode!=='lib'||S.cart.length)return;
+  const happy=S.books.filter(b=>b.happy),n=S.books.length,perfect=happy.length===n;
+  const mult=(owns('bookmark')?1.5:1)*(owns('lights')?1.15:1);
+  const base=happy.length*2, leg=happy.filter(b=>b.legend).length*10;
+  const streakNext=perfect?P.streak+1:0;
+  const bonus=perfect?Math.min(40,8+P.streak*4):0;
+  const total=Math.round((base+leg+bonus)*mult);
+  const newDex=happy.filter(b=>!P.dex.includes(b.title));
+  newDex.forEach(b=>P.dex.push(b.title));
+  P.ink+=total;P.happyTotal+=happy.length;P.streak=streakNext;P.best=Math.max(P.best,P.streak);if(perfect)P.perfects++;
+  const pct=happy.length/n,stars=perfect?3:pct>=.75?2:pct>=.5?1:0;
+  const dayWas=P.day;P.day++;saveP();
+  SFX.coin();
+  const grumps=S.books.filter(b=>!b.happy);
+  openModal(`<h2>🌙 Day ${dayWas} complete</h2>
+    <div class="stars">${[0,1,2].map(i=>`<span style="animation-delay:${i*.18}s;${i<stars?'':'filter:grayscale(1);opacity:.35'}">⭐</span>`).join('')}</div>
+    <p style="text-align:center;margin:4px 0 12px">${perfect?pick(['A perfect day! The books are writing you a thank-you note.','Flawless. Several books cried. Happily.','Perfect! Even the Encyclopedia said "acceptable".']):grumps.length===1?`Almost! <i>${esc(grumps[0].title)}</i> is sulking. It'll get over it.`:`${grumps.length} books went to sleep grumpy. They'll be fine. Probably.`}</p>
+    <div class="sumrow"><span>💖 Happy books (${happy.length}×2)</span><b>+${base}</b></div>
+    ${leg?`<div class="sumrow"><span>🌟 Legendary bonus</span><b>+${leg}</b></div>`:''}
+    ${perfect?`<div class="sumrow"><span>✨ Perfect Day${P.streak>1?` (streak ${P.streak})`:''}</span><b>+${bonus}</b></div>`:''}
+    ${mult>1?`<div class="sumrow"><span>🔖 Ink multiplier</span><b>×${mult.toFixed(2).replace(/0$/,'')}</b></div>`:''}
+    <div class="sumrow" style="font-size:17px"><span><b style="color:var(--ink)">Total</b></span><b>+${total} 💧</b></div>
+    ${newDex.length?`<p style="margin:12px 0 0">📖 <b>${newDex.length} new</b> in your Bookdex! (${P.dex.length}/${ALL_TITLES})</p>`:''}
+    ${P.streak>=2?`<p style="margin:6px 0 0">🔥 Perfect streak: <b>${P.streak}</b>. Don't break it!</p>`:(!perfect&&P.best>=2?`<p style="margin:6px 0 0;color:var(--muted)">Streak reset. Best: ${P.best} 🔥</p>`:'')}
+    <div style="display:flex;gap:8px;margin-top:16px"><button class="btn sec" id="mShop">🛍️ Shop</button><button class="btn" id="mNext">☀️ Open Day ${P.day}</button></div>`,false);
+  $('#mNext').onclick=()=>{closeModal();startLib()};
+  $('#mShop').onclick=()=>{openShop(true)};
+}
+$('#closeBtn').addEventListener('click',()=>{if(S.mode==='lib')closeDay();else if(S.done)showDailyResult()});
+
+/* ---------- daily ---------- */
+function startDaily(){
+  const num=dailyNum();
+  generate(dailyCfg(num),mulberry32(num*7919+1234567));
+  $('#title').classList.add('hidden');render();
+  if(D.res[num]){S.replay=true;toast('☀️ You already solved today\'s Bookle. This is a practice replay!',3500)}
+  if(!P.help){P.help=true;saveP();setTimeout(showHelp,300)}
+}
+function rankFor(moves,n,hints){
+  if(hints===0&&moves<=n)return '🏆 Mind-Reader';
+  if(hints===0&&moves<=n+4)return '🎩 Head Librarian';
+  if(moves<=n+10&&hints<=1)return '📖 Bookworm';
+  return '🐛 Enthusiastic Intern';
+}
+function finishDaily(){
+  const num=S.num;
+  if(!D.res[num]){
+    D.res[num]={m:S.moves,h:S.hints,n:S.books.length};
+    D.streak=(D.last===num-1)?D.streak+1:1;D.last=num;D.best=Math.max(D.best,D.streak);D.played++;saveD();
+    S.books.forEach(b=>{if(!P.dex.includes(b.title))P.dex.push(b.title)});saveP();
+  }
+  render();showDailyResult();
+}
+function shareText(num){
+  const r=D.res[num];if(!r)return '';
+  const hearts='💖'.repeat(r.n);
+  return `Bookle #${num} 📚\n${hearts}\n${r.n}/${r.n} happy · ${r.m} moves · ${r.h} hint${r.h===1?'':'s'}\n${rankFor(r.m,r.n,r.h)}`;
+}
+function showDailyResult(){
+  const num=S.num,r=D.res[num];if(!r)return;
+  const st=shareText(num);
+  openModal(`<h2>☀️ Daily Bookle #${num}</h2>
+    <p style="text-align:center;margin:0 0 6px">${pick(['Every single book is happy. You are a menace to grumpiness.','The books have formed a fan club. You are the president.','Shelved to perfection. The cat is impressed (it will never say so).'])}</p>
+    <div class="share">${esc(st)}</div>
+    <div class="sumrow"><span>🔥 Daily streak</span><b>${D.streak}</b></div>
+    <div class="sumrow"><span>🏅 Best streak</span><b>${D.best}</b></div>
+    <div class="sumrow"><span>📅 Played</span><b>${D.played}</b></div>
+    <p style="text-align:center;color:var(--muted);font-size:14px" id="cd"></p>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn sec" id="mLib">🏛️ My Library</button><button class="btn" id="mShare">📤 Copy result</button></div>`);
+  const cd=$('#cd');const tick=()=>{if(!document.body.contains(cd))return;const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)-n;const h=Math.floor(t/36e5),m=Math.floor(t/6e4)%60,s=Math.floor(t/1e3)%60;cd.textContent=`Next Bookle in ${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;setTimeout(tick,1000)};tick();
+  $('#mShare').onclick=()=>copy(st);
+  $('#mLib').onclick=()=>{closeModal();startLib()};
+}
+function copy(t){
+  const done=()=>toast('📋 Copied! Go make your friends jealous.',2500);
+  if(navigator.share&&matchMedia('(pointer:coarse)').matches){navigator.share({text:t}).catch(()=>{});return}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>fallback());else fallback();
+  function fallback(){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done()}catch(e){}ta.remove()}
+}
+
+/* ================= modals ================= */
+function openModal(html,closable=true){
+  const c=$('#modalCard');c.innerHTML=(closable?'<button class="ib x" id="mX">✕</button>':'')+html;
+  $('#modal').classList.remove('hidden');$('#modal').dataset.closable=closable?'1':'';
+  if(closable)$('#mX').onclick=closeModal;
+}
+function closeModal(){$('#modal').classList.add('hidden')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&$('#modal').dataset.closable)closeModal()});
+function showHelp(){
+  openModal(`<h2>How to Bookle</h2>
+  <p>📦 Books return on the cart. Each one has a <b>wish</b>. Tap a book to read it.</p>
+  <p>🖐️ <b>Drag</b> books onto the shelves (or tap a book, then tap an empty slot). Drop one on another to swap.</p>
+  <p>👀 Books only care about their <b>left & right</b> neighbors, which shelf they're on, and which column. 👇 books care about the slot directly below.</p>
+  <p>💖 = happy, 💢 = grumpy. Moving one book can upset its neighbors, so it's a little puzzle!</p>
+  <p>☀️ <b>Daily Bookle</b>: one puzzle a day, same for everyone. Fewer moves = fancier title.<br>🏛️ <b>My Library</b>: endless days. Earn 💧 ink, buy cozy stuff, adopt a cat, collect all ${ALL_TITLES} books.</p>
+  <button class="btn" style="width:100%;margin-top:6px" id="mOk">Let's shelve! 📚</button>`);
+  $('#mOk').onclick=closeModal;
+}
+function openShop(fromSummary){
+  const items=SHOP.map(it=>{
+    const own=owns(it.id),locked=it.req&&!owns(it.req);
+    return `<div class="shopitem ${own?'owned':''}"><div class="em">${it.emoji}</div><div class="tx"><b>${it.name}</b>${it.desc}</div>
+      ${own?'<span class="tag">Owned ✓</span>':locked?'<span class="tag">🔒</span>':`<button class="btn" data-buy="${it.id}" ${P.ink<it.cost?'disabled':''}>${it.cost} 💧</button>`}</div>`}).join('');
+  openModal(`<h2>🛍️ Cozy Shop</h2><p style="text-align:center;margin:0 0 12px">You have <b style="color:var(--accent)">${P.ink} 💧</b> ink.${fromSummary?' New items show up from your next day on.':''}</p>${items}
+    ${fromSummary?`<button class="btn" style="width:100%;margin-top:6px" id="mNext2">☀️ Open Day ${P.day}</button>`:''}`,!fromSummary);
+  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
+    const it=SHOP.find(x=>x.id===b.dataset.buy);if(P.ink<it.cost)return;
+    P.ink-=it.cost;P.owned.push(it.id);saveP();SFX.coin();bumpInk();renderHud();
+    const r=b.getBoundingClientRect();burst(r.left+r.width/2,r.top,[it.emoji,'✨','💖'],10);
+    toast(`${it.emoji} <b>${it.name}</b> ${pick(['delivered! The books are gossiping about it.','acquired! Very cozy.','is here! Everyone pretends not to be excited.'])}${S.mode==='lib'&&!fromSummary?' (Arrives tomorrow.)':''}`);
+    setTimeout(()=>openShop(fromSummary),250);
+  });
+  if(fromSummary)$('#mNext2').onclick=()=>{closeModal();startLib()};
+}
+function openDex(){
+  const has=new Set(P.dex);
+  const html=GENRE_ORDER.map(g=>{const gg=G(g);const n=gg.titles.filter(t=>has.has(t)).length;
+    return `<div class="dexg"><span>${gg.emoji} ${gg.name}</span><span style="color:var(--muted)">${n}/${gg.titles.length}${n===gg.titles.length?' 🏆':''}</span></div>
+    <div class="dexl">${gg.titles.map(t=>has.has(t)?`<div style="background:${gg.color}40">${esc(t)}</div>`:'<div class="unk">???</div>').join('')}</div>`}).join('');
+  openModal(`<h2>📖 Bookdex</h2><p style="text-align:center;margin:0">${P.dex.length} / ${ALL_TITLES} books made happy</p>
+    <p style="text-align:center;color:var(--muted);font-size:13px;margin:4px 0 0">Library: day ${P.day} · ${P.perfects} perfect days · best streak ${P.best}🔥</p>${html}`);
+}
+$('#helpBtn').onclick=showHelp;
+$('#dexBtn').onclick=openDex;
+$('#shopBtn').onclick=()=>openShop(false);
+$('#sndBtn').onclick=()=>{P.sound=!P.sound;saveP();renderHud();if(P.sound)SFX.pick()};
+$('#homeBtn').onclick=showTitle;
+
+/* ================= title ================= */
+function showTitle(){
+  closeModal();
+  const num=dailyNum();
+  $('#dailySub').textContent=D.res[num]?`#${num} solved ✓ · streak ${D.streak}🔥 · tap to see result`:`#${num} · One puzzle a day. Same for everyone.`;
+  $('#libSub').textContent=P.day>1?`Day ${P.day} · ${P.ink} 💧 · ${P.dex.length}/${ALL_TITLES} books collected`:'Endless days, ink, cozy upgrades, a cat.';
+  $('#tfoot').textContent=pick(['Made with love, glue and a suspicious amount of tea.','No books were harmed. One was mildly offended.','Shh! This is a library. (Sound is fine.)']);
+  const tb=$('#tbooks');tb.innerHTML='';
+  ['romance','comics','poetry','cookbook','scifi','fairy'].forEach((g,i)=>{
+    const fake={t:'book',id:900+i,genre:g,wishes:[],legend:i===3&&Math.random()<.5,h:70+(i*7)%25,pos:0,happy:true};
+    const el=document.createElement('div');el.className='book happy'+(fake.legend?' legend':'');el.style.setProperty('--c',G(g).color);el.style.height=fake.h+'px';
+    el.innerHTML='<div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>';
+    el.onclick=()=>{ac();tone(500+i*120,0,.15,'sine',.1);const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top,['💖','✨'],5)};
+    tb.appendChild(el);
+  });
+  $('#title').classList.remove('hidden');
+}
+$('#playDaily').onclick=()=>{ac();startDaily()};
+$('#playLib').onclick=()=>{ac();startLib()};
+setInterval(()=>{tipI++;if(S&&S.sel==null)renderPanel()},9000);
+window.addEventListener('resize',()=>{if(S)render()});
+
+// boot: render a placeholder puzzle behind the title
+generate(libCfg(),Math.random);render();showTitle();
+})();
+</script>
+</body>
+</html>
