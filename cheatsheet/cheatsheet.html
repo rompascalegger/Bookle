@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bookle Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:0}
+:root{--ink:#3a2a48;--muted:#7d6a72;--accent:#7b5cff;--pink:#ff5f8f;--cream:#fffaf2;--paper:#f8eedd;--line:#ecd9bd;--wood:#a86f43;--woodDk:#6e4426}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;background:#ddd}
+body{font-family:Fredoka,"Segoe UI",system-ui,sans-serif;color:var(--ink);font-size:8.6pt;line-height:1.3}
+.page{width:210mm;height:297mm;margin:0 auto 8mm;background:var(--paper);position:relative;overflow:hidden;padding:10mm 11mm 9mm;display:flex;flex-direction:column;gap:3mm;
+  background-image:repeating-linear-gradient(90deg,transparent 0 9mm,rgba(220,195,160,.18) 9mm 9.4mm)}
+@media print{html,body{background:none}.page{margin:0;page-break-after:always}}
+.top{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:30pt;font-weight:700;letter-spacing:-1px;line-height:1}
+.logo span{color:var(--accent)}
+.logo small{font-size:11pt;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:6px}
+.spines{display:flex;gap:2.2mm;align-items:flex-end;height:15mm}
+.sp{width:7mm;border-radius:2mm 2mm 1mm 1mm;position:relative;box-shadow:inset 0 -1mm 0 rgba(0,0,0,.15)}
+.sp::before{content:"";position:absolute;left:0;right:0;top:18%;height:.7mm;background:rgba(255,255,255,.5)}
+.sp i{position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);font-style:normal;font-size:6pt;color:#2b1d2e;font-weight:700;white-space:nowrap}
+.pageno{position:absolute;bottom:4.5mm;right:11mm;font-size:7pt;color:var(--muted)}
+.foot{position:absolute;bottom:4.5mm;left:11mm;font-size:7pt;color:var(--muted)}
+h2{margin:0 0 1.6mm;font-size:11.5pt;display:flex;align-items:center;gap:1.5mm}
+h2 .n{background:var(--accent);color:#fff;border-radius:50%;width:5.2mm;height:5.2mm;display:inline-grid;place-items:center;font-size:8pt}
+.card{background:var(--cream);border:.5mm solid var(--line);border-radius:4mm;padding:3mm 3.5mm}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:3.2mm}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3.2mm}
+.hero{background:linear-gradient(120deg,#fff0f5,#f1ecff);border-color:#e6d7ff}
+.hero b{color:var(--pink)}
+ul{margin:0;padding-left:4mm}li{margin:.5mm 0}
+table{width:100%;border-collapse:collapse}
+td,th{padding:.45mm 1mm;vertical-align:top;text-align:left}
+th{font-size:7.5pt;color:var(--muted);font-weight:600;border-bottom:.4mm solid var(--line)}
+tr+tr td{border-top:.25mm dashed var(--line)}
+.ic{font-size:11pt;white-space:nowrap;width:12mm}
+.mood{font-weight:600;white-space:nowrap}
+.tag{display:inline-block;background:#efe2cc;border-radius:3mm;padding:.2mm 1.6mm;font-size:7pt;font-weight:600}
+.tip{display:flex;gap:2mm;margin:1mm 0}
+.tip span:first-child{font-size:10pt}
+.mini{font-size:7.5pt;color:var(--muted)}
+.shelfdemo{display:grid;grid-template-columns:repeat(5,1fr);gap:1mm;background:var(--woodDk);border:1mm solid var(--wood);border-radius:2.5mm;padding:1.2mm;position:relative}
+.shelfdemo div{height:9mm;background:#7a4c2d;border-radius:1mm;display:grid;place-items:center;font-size:6.5pt;color:#fff3df;font-weight:600;text-align:center;line-height:1.05}
+.shelfdemo .sun{background:linear-gradient(160deg,rgba(255,214,102,.55),#7a4c2d)}
+.shelfdemo .me{background:var(--pink);color:#fff}
+.shelfdemo .nb{background:#9a82ff}
+.shelfdemo .ab{background:#4ec4b6}
+.legend{display:flex;flex-wrap:wrap;gap:1.2mm 3mm;margin-top:1.5mm;font-size:7.5pt}
+.legend b{display:inline-block;width:3mm;height:3mm;border-radius:.8mm;vertical-align:-.4mm;margin-right:.8mm}
+/* books page */
+.genres{display:grid;grid-template-columns:1fr 1fr;gap:3mm;flex:1}
+.genre{background:var(--cream);border:.5mm solid var(--line);border-radius:4mm;overflow:hidden;display:flex;flex-direction:column}
+.gh{padding:1.3mm 3mm;display:flex;align-items:center;gap:2mm;color:#2b1d2e}
+.gh .em{font-size:13pt}
+.gh b{font-size:11pt}
+.gh small{margin-left:auto;font-size:7.5pt;font-style:italic;opacity:.8}
+.titles{padding:1.2mm 3mm 1.4mm;display:grid;grid-template-columns:1fr;gap:.2mm;flex:1}
+.t{display:flex;align-items:center;gap:1.6mm;font-size:7.7pt;line-height:1.15;padding:.1mm 0;border-bottom:.25mm dashed var(--line)}
+.t:last-child{border-bottom:0}
+.box{width:3mm;height:3mm;border:.4mm solid var(--muted);border-radius:.7mm;flex:0 0 auto;background:#fff}
+.star{margin-left:auto;font-size:8pt;color:#c9a227;flex:0 0 auto}
+.lg{font-size:7.5pt;color:var(--muted);display:flex;gap:4mm;justify-content:center}
+/* collect page */
+.chk{display:grid;grid-template-columns:repeat(6,1fr);gap:1.2mm}
+.ci{display:flex;align-items:center;gap:1.2mm;background:#f6ecdb;border-radius:2mm;padding:.7mm 1.2mm;font-size:7pt;line-height:1.1;border:.35mm solid transparent}
+.ci .e{font-size:11pt}
+.ci .box{margin-left:auto}
+.ci.rare{border-color:#8cc4ff}.ci.epic{border-color:#c9a0ff}.ci.legendary{border-color:#f5b623;background:#fff3c9}
+.st{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2mm 3mm}
+.si{display:flex;align-items:center;gap:1.4mm;font-size:7.1pt;line-height:1.15;padding:.15mm 0;border-bottom:.25mm dashed var(--line)}
+.si .e{font-size:9pt;width:5mm;text-align:center}
+.si .d{color:var(--muted)}
+.si .box{margin-left:auto}
+.rank{display:flex;align-items:center;gap:2mm;margin:.8mm 0}
+.rank .e{font-size:12pt}
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 ================= -->
+<section class="page">
+  <div class="top">
+    <div class="logo">Book<span>le</span><small>Cheat Sheet</small></div>
+    <div class="spines">
+      <div class="sp" style="height:12mm;background:#f48fb4"><i>• ◡ •</i></div>
+      <div class="sp" style="height:14mm;background:#a084dc"><i>• ◡ •</i></div>
+      <div class="sp" style="height:11mm;background:#f7a65e"><i>• ◡ •</i></div>
+      <div class="sp" style="height:15mm;background:#f5cf45"><i>• ◡ •</i></div>
+      <div class="sp" style="height:12.5mm;background:#73aaea"><i>• ◡ •</i></div>
+      <div class="sp" style="height:13.5mm;background:#4ec4b6"><i>• ◡ •</i></div>
+      <div class="sp" style="height:11.5mm;background:#9ddb82"><i>• ◡ •</i></div>
+      <div class="sp" style="height:14.5mm;background:#bd8f66"><i>• ◡ •</i></div>
+    </div>
+  </div>
+
+  <div class="card hero" style="font-size:9.5pt">
+    <b>The goal:</b> every book on the returns cart has a <b>wish</b>. Put every book on the shelf so that <b>all of them are happy 💖</b>.
+    The shelves have <b>exactly</b> enough room: every slot gets a book, so every placement affects someone else.
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="n">1</span>Controls</h2>
+      <div class="tip"><span>👆</span><span><b>Tap a book</b> to read its wish and rules.</span></div>
+      <div class="tip"><span>🖐️</span><span><b>Drag</b> it to a slot (or tap the book, then an empty slot).</span></div>
+      <div class="tip"><span>🔄</span><span><b>Drop on another book</b> to swap them.</span></div>
+      <div class="tip"><span>📦</span><span><b>Drag back to the cart</b> to take a book off the shelf.</span></div>
+      <div class="tip"><span>😊</span><span>While dragging, the book's <b>face</b> shows if it would be happy there.</span></div>
+      <div class="tip"><span>💡</span><span><b>Hint</b> puts one book where it belongs (Library: 5 💧).</span></div>
+    </div>
+    <div class="card">
+      <h2><span class="n">2</span>Reading the shelf</h2>
+      <div class="shelfdemo">
+        <div class="sun">🪟<br>window</div><div></div><div class="ab">above<br>👆</div><div></div><div>🤫<br>quiet</div>
+        <div class="sun"></div><div class="nb">left</div><div class="me">BOOK</div><div class="nb">right</div><div></div>
+        <div class="sun"></div><div></div><div class="ab">below<br>👇</div><div></div><div></div>
+      </div>
+      <div class="legend"><span><b style="background:#9a82ff"></b>"next to" = left or right only</span><span><b style="background:#4ec4b6"></b>slot directly above / below</span><span>Row = the whole shelf</span></div>
+      <div class="mini" style="margin-top:1.5mm">💖 happy · 💢 grumpy · 🌧️ grumpy for a while · 🙃 tantrum incoming!</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>All 19 wishes <span class="mini" style="font-weight:400">· the icon is printed on each book's spine</span></h2>
+    <div class="grid2" style="gap:0 5mm">
+      <table>
+        <tr><th>Icon</th><th>Mood</th><th>The book is happy when…</th></tr>
+        <tr><td class="ic">🪟</td><td class="mood">Dramatic</td><td>in the <b>leftmost</b> column (window)</td></tr>
+        <tr><td class="ic">🤫</td><td class="mood">Shy</td><td>in the <b>rightmost</b> column (quiet corner)</td></tr>
+        <tr><td class="ic">🧱</td><td class="mood">Leany</td><td>at <b>either end</b> of a shelf</td></tr>
+        <tr><td class="ic">⬆️</td><td class="mood">Snooty</td><td>on the <b>top</b> shelf</td></tr>
+        <tr><td class="ic">👁️</td><td class="mood">Famous</td><td>on a <b>middle</b> shelf (not top, not bottom)</td></tr>
+        <tr><td class="ic">⬇️</td><td class="mood">Nervous</td><td>on the <b>bottom</b> shelf</td></tr>
+        <tr><td class="ic">🙈</td><td class="mood">Introverted</td><td><b>no books</b> directly left or right</td></tr>
+        <tr><td class="ic">🤗</td><td class="mood">Chatty</td><td>books on <b>both</b> sides</td></tr>
+        <tr><td class="ic">🪞</td><td class="mood">Aesthetic</td><td>left and right neighbors are the <b>same genre</b></td></tr>
+        <tr><td class="ic">👯</td><td class="mood">Clingy</td><td>next to another book of <b>its own genre</b></td></tr>
+      </table>
+      <table>
+        <tr><th>Icon</th><th>Mood</th><th>The book is happy when…</th></tr>
+        <tr><td class="ic">💘🔍</td><td class="mood">Smitten</td><td><b>next to</b> that genre (left or right)</td></tr>
+        <tr><td class="ic">👉🔍</td><td class="mood">Particular</td><td>that genre is directly on its <b>right</b></td></tr>
+        <tr><td class="ic">🚫🔍</td><td class="mood">Petty</td><td><b>not</b> next to that genre</td></tr>
+        <tr><td class="ic">👇🔍</td><td class="mood">Needy</td><td>sitting <b>on top of</b> that genre (slot below)</td></tr>
+        <tr><td class="ic">👆🔍</td><td class="mood">Snuggly</td><td><b>under</b> that genre (slot above)</td></tr>
+        <tr><td class="ic">↔️🔍</td><td class="mood">Pen Pal</td><td>that genre is <b>anywhere on its shelf</b></td></tr>
+        <tr><td class="ic">👑</td><td class="mood">Main Character</td><td>the <b>only</b> one of its genre on its shelf</td></tr>
+        <tr><td class="ic">🍵🍪💡🪴🐈</td><td class="mood">Cozy</td><td><b>next to</b> that decor item</td></tr>
+        <tr><td class="ic">🤧</td><td class="mood">Sneezy</td><td><b>not</b> next to the cat</td></tr>
+      </table>
+    </div>
+    <div class="mini" style="margin-top:1mm">🔍 stands for any genre emoji: 💕 Romance · 🔍 Mystery · 🍳 Cookbook · 💥 Comics · 🌙 Poetry · 🚀 Sci-Fi · ✨ Fairy Tale · 📚 Encyclopedia. A book with two or three icons needs <b>all</b> of them.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="n">4</span>Pro tips</h2>
+      <div class="tip"><span>🎯</span><span>Place the <b>pickiest</b> books first: 🪟 🤫 ⬆️ ⬇️ 👑 🙈, golden books and anything with 2+ icons.</span></div>
+      <div class="tip"><span>🔗</span><span>👉 and 👇/👆 books form <b>chains</b>. Place them as pairs.</span></div>
+      <div class="tip"><span>🧮</span><span>Count genres: three 👑 books of the same genre need <b>three different shelves</b>.</span></div>
+      <div class="tip"><span>🙈</span><span>"No neighbors" on a full shelf only works next to <b>decor or a wall</b>.</span></div>
+      <div class="tip"><span>👀</span><span>After every move, look for new <b>💢</b>. Neighbors get upset too!</span></div>
+      <div class="tip"><span>🔥</span><span>Happy placements in a row build a <b>combo</b>, so plan before you drop.</span></div>
+    </div>
+    <div class="card">
+      <h2><span class="n">5</span>Decor &amp; drama</h2>
+      <table>
+        <tr><td class="ic">🍵</td><td><b>Teacup</b>. Always warm. Somehow.</td></tr>
+        <tr><td class="ic">🍪</td><td><b>Snack jar</b>. Crumbs are a love language.</td></tr>
+        <tr><td class="ic">💡</td><td><b>Lamp</b>. For books with very small fonts.</td></tr>
+        <tr><td class="ic">🪴</td><td><b>Fern</b>. Its name is Gerald.</td></tr>
+        <tr><td class="ic">🐈</td><td><b>Cat</b>. Tap to pet (+1 💧/day). Knocks books off shelves.</td></tr>
+      </table>
+      <div class="mini" style="margin-top:1.5mm">Decor takes up a slot and can't be moved. Leave a book grumpy and it will <b>complain</b>, <b>argue</b> with neighbors, <b>sneeze</b> at the cat, get a 🌧️ and finally throw a <b>tantrum</b>.</div>
+    </div>
+  </div>
+  <div class="foot">bookle.dicele.io</div><div class="pageno">1 / 3</div>
+</section>
+
+<!-- ================= PAGE 2 ================= -->
+<section class="page">
+  <div class="top">
+    <div class="logo" style="font-size:22pt">The Bookdex<small>all 96 books · tick them off!</small></div>
+    <div class="lg"><span>☐ shelved happily</span><span>☆ golden edition</span></div>
+  </div>
+  <div class="genres" id="genres"></div>
+  <div class="foot">bookle.dicele.io</div><div class="pageno">2 / 3</div>
+</section>
+
+<!-- ================= PAGE 3 ================= -->
+<section class="page">
+  <div class="top">
+    <div class="logo" style="font-size:22pt">Progress &amp; Rewards</div>
+    <div class="spines" style="height:10mm">
+      <div class="sp" style="height:8mm;background:linear-gradient(160deg,#ffe58a,#f5b623)"><i>^ ◡ ^</i></div>
+      <div class="sp" style="height:10mm;background:#f48fb4"><i>^ ◡ ^</i></div>
+      <div class="sp" style="height:9mm;background:#4ec4b6"><i>^ ◡ ^</i></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>🏛️ My Library: days</h2>
+      <table>
+        <tr><th>Day</th><th>Shelf</th><th>What's new</th></tr>
+        <tr><td>1</td><td>2 × 3</td><td>💕 🔍 🍳 · 1 wish each</td></tr>
+        <tr><td>2</td><td>2 × 4</td><td>+ 💥 Comics</td></tr>
+        <tr><td>3</td><td>3 × 3</td><td>Some books want <b>two</b> things</td></tr>
+        <tr><td>4–5</td><td>3 × 4</td><td>+ 🌙 Poetry · 🌟 Legendary books</td></tr>
+        <tr><td>6–7</td><td>3 × 5</td><td>+ 🚀 Sci-Fi</td></tr>
+        <tr><td>8–9</td><td>3 × 6</td><td>+ ✨ Fairy Tale</td></tr>
+        <tr><td>10–11</td><td>4 × 5</td><td>+ 📚 Encyclopedia (all 8 genres)</td></tr>
+        <tr><td>12+</td><td>4 × 6</td><td>Up to 60% of books have 2 wishes</td></tr>
+      </table>
+      <div class="mini" style="margin-top:1mm">1 decor slot per 5 slots, picked from the decor you own.</div>
+    </div>
+    <div class="card">
+      <h2>💧 Earning ink</h2>
+      <table>
+        <tr><td>Each happy book</td><td style="text-align:right"><b>1 + its wishes</b></td></tr>
+        <tr><td>✨ Completed shelf row</td><td style="text-align:right"><b>+3</b></td></tr>
+        <tr><td>🌟 Happy Legendary book</td><td style="text-align:right"><b>+10</b></td></tr>
+        <tr><td>⭐ Perfect day (all happy)</td><td style="text-align:right"><b>8 + 4 × streak</b> (max 40)</td></tr>
+        <tr><td>🐈 Petting the cat</td><td style="text-align:right"><b>+1</b>/day</td></tr>
+        <tr><td>🎀 Duplicate charm</td><td style="text-align:right"><b>+5</b></td></tr>
+        <tr><td>💡 Hint</td><td style="text-align:right"><b>−5</b></td></tr>
+      </table>
+      <div class="mini" style="margin-top:1mm">Stars: ⭐⭐⭐ all happy · ⭐⭐ 75%+ · ⭐ 50%+</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>🛍️ Cozy Shop</h2>
+      <table>
+        <tr><td class="ic">🍪</td><td><b>Snack Jar</b></td><td>20</td><td class="mini">snack wishes</td></tr>
+        <tr><td class="ic">💡</td><td><b>Reading Lamp</b></td><td>35</td><td class="mini">lamp wishes</td></tr>
+        <tr><td class="ic">🪴</td><td><b>Potted Fern</b></td><td>55</td><td class="mini">plant wishes</td></tr>
+        <tr><td class="ic">✨</td><td><b>Fairy Lights</b></td><td>80</td><td class="mini">+15% ink</td></tr>
+        <tr><td class="ic">🐈</td><td><b>Library Cat</b></td><td>110</td><td class="mini">cat wishes, chaos</td></tr>
+        <tr><td class="ic">🧶</td><td><b>Cozy Rug</b></td><td>150</td><td class="mini">+10% ink</td></tr>
+        <tr><td class="ic">🪩</td><td><b>Disco Ball</b></td><td>220</td><td class="mini">disco party, +20%</td></tr>
+        <tr><td class="ic">🔖</td><td><b>Golden Bookmark</b></td><td>320</td><td class="mini">×1.5 ink</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>☀️ Daily Bookle</h2>
+      <div class="mini" style="margin-bottom:1mm">Same puzzle for everyone · 3 × 5 shelf · 12 books · 3 decor. Your title:</div>
+      <div class="rank"><span class="e">🏆</span><span><b>Mind-Reader</b>: no hints, one move per book</span></div>
+      <div class="rank"><span class="e">🎩</span><span><b>Head Librarian</b>: no hints, ≤ 5 extra moves</span></div>
+      <div class="rank"><span class="e">📖</span><span><b>Bookworm</b>: ≤ 14 extra moves, ≤ 1 hint</span></div>
+      <div class="rank"><span class="e">🐛</span><span><b>Enthusiastic Intern</b>: everyone else 💖</span></div>
+      <div class="mini" style="margin-top:1.5mm"><b>Combos:</b> Nice! → Lovely! → Splendid! → Book-tastic! → Shelf-ebrity! → Literary Genius! → UNPUTDOWNABLE!</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎀 Bookmark charms <span class="mini" style="font-weight:400">· one per perfect Library day and per solved Daily · border = rarity: plain common 60% · <span style="color:#4a9be8">blue rare 28%</span> · <span style="color:#9b6ae0">purple epic 10%</span> · <span style="color:#c99410">gold legendary 2%</span></span></h2>
+    <div class="chk" id="charms"></div>
+  </div>
+
+  <div class="card" style="flex:1">
+    <h2>🏷️ Stickers</h2>
+    <div class="st" id="stickers"></div>
+  </div>
+  <div class="foot">bookle.dicele.io</div><div class="pageno">3 / 3</div>
+</section>
+
+<script>
+const GENRES=[
+ ['💕','Romance','#f48fb4','Swoons easily.',["Pride and Pudding","Love in the Time of Cholesterol","Kiss Me, Librarian","The Duke Who Loved Spreadsheets","Sense and Sensitivity Training","Romeo, Juliet & Gary","Hearts on the Late Fee","Love, Actually Maybe","Love at First Swipe-Card","The Bachelor's Bookmark","Wuthering Bites","Sleepless in the Reading Room"]],
+ ['🔍','Mystery','#a084dc','Suspects everyone. Including you.',["Who Ate the Last Cookie?","The Case of the Missing Sock","Murder on the Orient Espresso","The Hound of the Basket-villes","Death by Bookmark","The Butler Did Yoga","And Then There Were Nuns","The Curious Incident of the Dog at Brunch","Gone Fishing (Suspiciously)","The Big Sleepover","Inspector Biscuit Investigates","Murder, She Hummed"]],
+ ['🍳','Cookbook','#f7a65e','Smells faintly of cinnamon.',["The Joy of Toast","Bake Me Up Before You Go-Go","Lord of the Onion Rings","Soup, Sweet Soup","Fifty Shades of Gravy","The Grapes of Rad","Crème Brûlée & Punishment","A Tale of Two Pizzas","Eat, Pray, Microwave","Pasta La Vista, Baby","Whisk Taker","Life of Pie"]],
+ ['💥','Comics','#f5cf45','SPEAKS IN ALL CAPS.',["Captain Snacktime","Kapow Kittens","The Incredible Sulk","Nap Man Returns","Sidekick's Day Off","Super Grandma Vol. 3","Laser Llama","The Fantastic Fourteen","Iron Mom","Wonder Wombat","The Dark Night-Light","Aquamanatee"]],
+ ['🌙','Poetry','#73aaea','Sighs. A lot.',["Sighs, Volume II","Ode to a Damp Leaf","Sonnets for Puddles","I Wandered Lonely as a Cloud Server","Haikus About Socks","Moon, Again","Rhymes with Orange (Nothing)","Deep Thoughts, Shallow Bath","Leaves of Grass (Mostly Lawn)","Do Not Go Gentle Into That Good Nap","The Road Not Taken (It Was Muddy)","Shall I Compare Thee to a Sandwich?"]],
+ ['🚀','Sci-Fi','#4ec4b6','Beeps when nervous.',["The Hitchhiker's Guide to the Fridge","Space Pigeons","The Martian's Mum","Dune Buggy","Robots Need Naps Too","Moon Base Alpaca","Ender's Game Night","2001: A Space Snack","Do Androids Dream of Sheep Pillows?","The Time Machine Is Running Late","Brave New Wi-Fi","I, Roomba"]],
+ ['✨','Fairy Tale','#9ddb82','Believes in you. Deeply.',["Goldilocks and the Three Lawyers","Rapunzel's Bad Hair Day","Jack and the Beanbag","Sleeping Beauty Hits Snooze","Cinderella's Lost Croc","The Frog Who Didn't Want a Kiss","Little Red Riding Hoodie","Hansel & Gretel Go Gluten-Free","Snow White and the Seven Roommates","The Princess and the Pea Allergy","Puss in Crocs","Beauty and the Beast's Skincare Routine"]],
+ ['📚','Encyclopedia','#bd8f66','Well, actually...',["Everything, Vol. A–Aardvark","Actually, Volume 7","Facts Nobody Asked For","The Big Book of Footnotes","Rocks: A Thrilling History","1,001 Types of Beige","Atlas of Places I Haven't Been","Well, Technically…","Dirt: The Director's Cut","Encyclopedia of Very Small Spoons","Know-It-All, Volume Z","The Complete Guide to Waiting"]]
+];
+const CHARMS=[['🍓','Strawberry','common'],['🦆','Rubber Duck','common'],['🍄','Mushroom','common'],['🐌','Snail','common'],['🧦','Lost Sock','common'],['🍩','Donut','common'],['🌻','Sunflower','common'],['🐸','Frog','common'],['🧸','Teddy','common'],['🥐','Croissant','common'],['🦉','Wise Owl','rare'],['🐙','Octo-Reader','rare'],['🦔','Hedgehog','rare'],['🌈','Rainbow','rare'],['🍰','Cake Slice','rare'],['🎈','Balloon','rare'],['🐝','Spelling Bee','rare'],['🦋','Butterfly','rare'],['🐉','Tiny Dragon','epic'],['🦄','Unicorn','epic'],['🪐','Planet','epic'],['👑','Crown','epic'],['🌟','Wishing Star','legendary'],['🔮','Crystal Ink','legendary']];
+const STICKERS=[['😊','First Smile','Make a book happy'],['⭐','Perfect Day','Every book happy in a Library day'],['🔥','On Fire','3 perfect Library days in a row'],['☄️','Unstoppable','7 perfect Library days in a row'],['🧙','Combo Wizard','Reach a ×5 combo'],['🌊','Flow State','Reach a ×8 combo'],['🚣','Row Row Row','Complete 25 shelves'],['🤧','Bless You','Witness a sneeze'],['🐈','Cat Victim','The cat knocked a book off'],['😻','Cat Whisperer','Pet the cat 10 times'],['🦙','Drama Llama','Witness a full tantrum'],['🗣️','Shelf Gossip','Witness an argument'],['🌟','Golden Touch','Make a Legendary book happy'],['🏅','Gold Rush','5 golden editions'],['🐛','Bookworm','25 books in the Bookdex'],['📚','Bibliophile','50 books in the Bookdex'],['🏛️','Grand Librarian','Every book in the Bookdex'],['🍀','Charming','10 different charms'],['💫','Fully Charmed','Every charm'],['☀️','Good Morning','Solve a Daily Bookle'],['🔮','Mind-Reader','Daily, no hints, no wasted moves'],['🐦','Early Bird','3-day Daily streak'],['🎖️','Veteran','Reach Library day 10'],['🛋️','Interior Designer','Buy 5 shop items'],['💪','No Help Needed','Perfect day (day 3+), no hints'],['🪩','Disco Fever','Throw a disco party']];
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+document.getElementById('genres').innerHTML=GENRES.map(([e,n,c,b,ts])=>`<div class="genre"><div class="gh" style="background:${c}"><span class="em">${e}</span><b>${n}</b><small>${b}</small></div><div class="titles">${ts.map(t=>`<div class="t"><span class="box"></span>${esc(t)}<span class="star">☆</span></div>`).join('')}</div></div>`).join('');
+document.getElementById('charms').innerHTML=CHARMS.map(([e,n,r])=>`<div class="ci ${r}"><span class="e">${e}</span><span>${n}</span><span class="box"></span></div>`).join('');
+document.getElementById('stickers').innerHTML=STICKERS.map(([e,n,d])=>`<div class="si"><span class="e">${e}</span><span><b>${n}</b> <span class="d">· ${d}</span></span><span class="box"></span></div>`).join('');
+</script>
+</body>
+</html>
