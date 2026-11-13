@@ -221,6 +221,23 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .tbtn{display:block;width:100%;margin:10px 0;text-align:left;padding:14px 16px}
 .tbtn small{display:block;font-weight:400;font-size:13px;opacity:.85}
 .tfoot{margin-top:14px;font-size:13px;color:var(--muted)}
+.tbtn.cal-btn{padding:10px 16px}
+/* calendar */
+.calnav{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.calnav b{font-size:17px}
+.calnav .ib:disabled{opacity:.3}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .dh{font-size:11px;font-weight:600;color:var(--muted);text-align:center}
+.cal .day{aspect-ratio:1;border-radius:11px;border:2px solid var(--cardLine);background:var(--wall);color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;font-family:inherit;font-weight:600;font-size:12px;line-height:1;transition:transform .1s}
+.cal .day:not(:disabled):hover{transform:translateY(-2px);border-color:var(--accent)}
+.cal .day .e{font-size:17px;line-height:1}
+.cal .day.solved{background:var(--bg2);border-color:var(--good)}
+.cal .day.late{border-style:dashed}
+.cal .day.today{outline:3px solid var(--accent);outline-offset:1px}
+.cal .day:disabled{opacity:.35}
+.cal .day.void{visibility:hidden}
+.callegend{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0;line-height:1.6}
 
 #toasts{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:6px;width:min(92vw,420px);pointer-events:none}
 .toast{background:var(--card);border:2px solid var(--cardLine);border-radius:14px;padding:9px 12px;font-size:14px;box-shadow:var(--shadow);animation:toast 4.2s forwards;line-height:1.3}
@@ -305,6 +322,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
     <div class="tbooks" id="tbooks"></div>
     <button class="btn tbtn" id="playDaily">☀️ Daily Bookle <small id="dailySub">One puzzle a day. Same for everyone.</small></button>
     <button class="btn tbtn sec" id="playLib" style="width:100%">🏛️ My Library <small id="libSub">Endless days, ink, a cat.</small></button>
+    <button class="btn tbtn sec cal-btn" id="playCal" style="width:100%">📅 Calendar <small id="calSub">Every Bookle so far.</small></button>
     <div class="tfoot" id="tfoot"></div>
   </div>
 </div>
@@ -313,6 +331,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 <div id="toasts"></div>
 <div id="fx"></div>
 
+<script src="dailies.js"></script>
 <script>
 (() => {
 "use strict";
@@ -634,12 +653,39 @@ function hypothetical(b,idx,fn){
 }
 const fill=(t,b,w)=>t.replace(/\{G\}/g,w&&w.g?G(w.g).name:'').replace(/\{S\}/g,G(b.genre).name).replace(/\{D\}/g,w&&w.d?DECOR[w.d].name:'');
 
+function blankState(rows,cols,mode,num){
+  return {rows,cols,grid:Array(rows*cols).fill(null),books:[],cart:[],moves:0,hints:0,sel:null,mode,num,
+     catDone:false,done:false,wasAll:false,party:false,combo:0,maxCombo:0,rowDone:{},rowAward:{},rowBonus:0,petted:false,lastDrama:-1};
+}
+/* ---------- frozen dailies: puzzles live in dailies.js and are never regenerated ---------- */
+const FROZEN=(typeof window!=='undefined'&&window.BOOKLE_DAILIES)||{};
+// compact copy of a freshly generated puzzle (books on the cart, decor on the shelf)
+function snapshot(){
+  return {r:S.rows,c:S.cols,
+    d:S.grid.map((x,i)=>x&&x.t==='decor'?[i,x.kind]:null).filter(Boolean),
+    b:S.books.map(b=>[b.genre,b.title,b.legend?1:0,b.h,b.wishes,b.line,S.sol[b.id]]),
+    k:S.cart.slice()};
+}
+function loadPuzzle(p,mode,num){
+  S=blankState(p.r,p.c,mode,num);
+  p.d.forEach(([i,kind])=>{S.grid[i]={t:'decor',kind}});
+  S.sol={};
+  S.books=p.b.map(([genre,title,legend,h,wishes,line,sol],id)=>{
+    S.sol[id]=sol;
+    return {t:'book',id,genre,title,wishes:wishes.map(w=>Object.assign({},w)),legend:!!legend,h,pos:-1,happy:false,sadSince:0,gloomy:false,line};
+  });
+  S.cart=p.k.slice();
+}
+function dailyPuzzle(num){
+  if(FROZEN[num])loadPuzzle(FROZEN[num],'daily',num);
+  else generate(dailyCfg(num),mulberry32(num*7919+1234567));
+}
+
 /* ---------- generator: build a solved full shelf, then derive wishes from it ---------- */
 function generate(cfg,rng){
   const {rows,cols,decor,genres,legend,two,diff}=cfg;
   const total=rows*cols;
-  S={rows,cols,grid:Array(total).fill(null),books:[],cart:[],moves:0,hints:0,sel:null,mode:cfg.mode,num:cfg.num,
-     catDone:false,done:false,wasAll:false,party:false,combo:0,maxCombo:0,rowDone:{},rowAward:{},rowBonus:0,petted:false,lastDrama:-1};
+  S=blankState(rows,cols,cfg.mode,cfg.num);
   const order=shuffle([...Array(total).keys()],rng);
   decor.forEach(k=>{S.grid[order.pop()]={t:'decor',kind:k}});
   const free=order,n=free.length;
@@ -1122,11 +1168,12 @@ function closeDay(){
 $('#closeBtn').addEventListener('click',()=>{if(S.mode==='lib')closeDay();else if(S.done)showDailyResult()});
 
 /* ---------- daily ---------- */
-function startDaily(){
-  const num=dailyNum();
-  generate(dailyCfg(num),mulberry32(num*7919+1234567));
-  $('#title').classList.add('hidden');MUS.party=false;render();unlockAudio();
-  if(D.res[num]){S.replay=true;toast('☀️ You already solved today\'s Bookle. This is a practice replay!',3500)}
+function startDaily(num){
+  const today=dailyNum();num=num||today;
+  dailyPuzzle(num);S.startedOn=today;
+  closeModal();$('#title').classList.add('hidden');MUS.party=false;render();unlockAudio();
+  if(D.res[num]){S.replay=true;toast(`☀️ You already solved Bookle #${num}. This is a practice replay!`,3500)}
+  else if(num<today)toast(`📅 Bookle #${num} from ${dayLabel(num)}. Late solves get a ✓ but don't touch your streak.`,4000)
   if(!P.help){P.help=true;saveP();setTimeout(showHelp,300)}
 }
 function rankFor(moves,n,hints){
@@ -1138,11 +1185,13 @@ function rankFor(moves,n,hints){
 function finishDaily(){
   const num=S.num;let charm=null;
   if(!D.res[num]){
-    D.res[num]={m:S.moves,h:S.hints,n:S.books.length};
-    D.streak=(D.last===num-1)?D.streak+1:1;D.last=num;D.best=Math.max(D.best,D.streak);D.played++;saveD();
+    const onTime=num===S.startedOn;   // started on its own day (finishing after midnight still counts)
+    D.res[num]=onTime?{m:S.moves,h:S.hints,n:S.books.length}:{m:S.moves,h:S.hints,n:S.books.length,late:1};
+    if(onTime){D.streak=(D.last===num-1)?D.streak+1:1;D.last=num;D.best=Math.max(D.best,D.streak)}
+    D.played++;saveD();
     S.books.forEach(b=>{if(!P.dex.includes(b.title))P.dex.push(b.title);if(b.legend&&!P.gold.includes(b.title))P.gold.push(b.title)});
     charm=rollCharm();saveP();
-    sticker('daily1');if(D.streak>=3)sticker('daily3');if(S.hints===0&&S.moves<=S.books.length)sticker('mind');checkCollStickers();
+    sticker('daily1');if(onTime&&D.streak>=3)sticker('daily3');if(S.hints===0&&S.moves<=S.books.length)sticker('mind');checkCollStickers();
   }
   render();showDailyResult(charm);
 }
@@ -1157,15 +1206,52 @@ function showDailyResult(charm){
     <p style="text-align:center;margin:0 0 6px">${pick(['Every single book is happy. You are a menace to grumpiness.','The books have formed a fan club. You are the president.','Shelved to perfection. The cat is impressed (it will never say so).'])}</p>
     <div class="share">${esc(st)}</div>
     ${charm?revealHTML('rv'):''}
-    <div class="sumrow"><span>🔥 Daily streak</span><b>${D.streak}</b></div>
+    <div class="sumrow"><span>🔥 Daily streak</span><b>${D.streak}${r.late?' <small style="color:var(--muted);font-weight:400">(late solve, unchanged)</small>':''}</b></div>
     <div class="sumrow"><span>🏅 Best streak</span><b>${D.best}</b></div>
     <div class="sumrow"><span>📅 Played</span><b>${D.played}</b></div>
     <p style="text-align:center;color:var(--muted);font-size:14px" id="cd"></p>
-    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn sec" id="mLib">🏛️ My Library</button><button class="btn" id="mShare">📤 Copy result</button></div>`);
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn sec" id="mCal" aria-label="Calendar">📅</button><button class="btn sec" id="mLib">🏛️ Library</button><button class="btn" id="mShare">📤 Copy result</button></div>`);
   if(charm)playReveal('rv',charm);
   const cd=$('#cd');const tick=()=>{if(!document.body.contains(cd))return;const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)-n;const h=Math.floor(t/36e5),m=Math.floor(t/6e4)%60,s=Math.floor(t/1e3)%60;cd.textContent=`Next Bookle in ${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;setTimeout(tick,1000)};tick();
   $('#mShare').onclick=()=>copy(st);
   $('#mLib').onclick=()=>{closeModal();startLib()};
+  $('#mCal').onclick=()=>openCalendar(num);
+}
+
+/* ---------- calendar ---------- */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const numDate=n=>new Date(EPOCH+(n-1)*864e5);                      // UTC date of Daily #n
+const dateNum=(y,m,d)=>Math.floor((Date.UTC(y,m,d)-EPOCH)/864e5)+1;
+const dayLabel=n=>{const d=numDate(n);return `${MONTHS[d.getUTCMonth()].slice(0,3)} ${d.getUTCDate()}`};
+let calYM=null;
+function openCalendar(focus){
+  const t=numDate(focus||dailyNum());
+  calYM=[t.getUTCFullYear(),t.getUTCMonth()];renderCalendar();
+}
+function renderCalendar(){
+  const today=dailyNum(),[y,m]=calYM,e=numDate(1),tn=numDate(today);
+  const first=new Date(Date.UTC(y,m,1)),days=new Date(Date.UTC(y,m+1,0)).getUTCDate(),lead=(first.getUTCDay()+6)%7;
+  let cells=['Mo','Tu','We','Th','Fr','Sa','Su'].map(d=>`<div class="dh">${d}</div>`).join('');
+  for(let i=0;i<lead;i++)cells+='<div class="day void"></div>';
+  for(let d=1;d<=days;d++){
+    const n=dateNum(y,m,d),r=D.res[n];
+    if(n<1){cells+=`<button class="day" disabled>${d}</button>`;continue}
+    const cls=['day',r?'solved':'',r&&r.late?'late':'',n===today?'today':''].join(' ');
+    const em=n>today?'🔒':r?rankFor(r.m,r.n,r.h).split(' ')[0]:n===today?'☀️':'📦';
+    cells+=`<button class="${cls}" data-n="${n}" ${n>today?'disabled':''} title="Bookle #${n}${r?` · ${r.m} moves · ${r.h} hints`:''}"><span class="e">${em}</span>${d}</button>`;
+  }
+  const solved=Object.keys(D.res).filter(k=>+k>=1&&+k<=today).length;
+  openModal(`<h2>📅 Bookle Calendar</h2>
+    <div class="calnav"><button class="ib" id="calPrev" aria-label="Previous month" ${y===e.getUTCFullYear()&&m===e.getUTCMonth()?'disabled':''}>‹</button>
+      <b>${MONTHS[m]} ${y}</b>
+      <button class="ib" id="calNext" aria-label="Next month" ${y===tn.getUTCFullYear()&&m===tn.getUTCMonth()?'disabled':''}>›</button></div>
+    <div class="cal">${cells}</div>
+    <div class="sumrow" style="margin-top:10px"><span>✅ Solved</span><b>${solved} / ${today}</b></div>
+    <div class="sumrow"><span>🔥 Streak · best</span><b>${D.streak} · ${D.best}</b></div>
+    <p class="callegend">📦 open · 🏆 Mind-Reader · 🎩 Head Librarian · 📖 Bookworm · 🐛 Intern<br>Dashed = solved late (doesn't count for the streak). Tap a day to play it.</p>`);
+  $('#calPrev').onclick=()=>{calYM=m?[y,m-1]:[y-1,11];renderCalendar()};
+  $('#calNext').onclick=()=>{calYM=m<11?[y,m+1]:[y+1,0];renderCalendar()};
+  document.querySelectorAll('.cal .day[data-n]').forEach(b=>b.onclick=()=>{unlockAudio();startDaily(+b.dataset.n)});
 }
 function copy(t){
   const done=()=>toast('📋 Copied! Go make your friends jealous.',2500);
@@ -1244,6 +1330,8 @@ function showTitle(){
   closeModal();MUS.party=false;
   const num=dailyNum();
   $('#dailySub').textContent=D.res[num]?`#${num} solved ✓ · streak ${D.streak}🔥 · tap to replay`:`#${num} · One puzzle a day. Same for everyone.`;
+  const todo=num-Object.keys(D.res).filter(k=>+k>=1&&+k<=num).length;
+  $('#calSub').textContent=todo?`${todo} Bookle${todo===1?'':'s'} waiting for you`:'Every Bookle solved ✓';
   $('#libSub').textContent=P.day>1?`Day ${P.day} · ${P.ink} 💧 · ${P.dex.length}/${ALL_TITLES} books · ${Object.keys(P.charms).length}/${CHARMS.length} charms`:'Endless days, ink, cozy upgrades, a cat.';
   $('#tfoot').textContent=pick(['Made with love, glue and a suspicious amount of tea.','No books were harmed. One was mildly offended.','Shh! This is a library. (Dancing is fine.)']);
   const tb=$('#tbooks');tb.innerHTML='';
@@ -1258,9 +1346,19 @@ function showTitle(){
 }
 $('#playDaily').onclick=()=>{unlockAudio();startDaily()};
 $('#playLib').onclick=()=>{unlockAudio();startLib()};
+$('#playCal').onclick=()=>{unlockAudio();openCalendar()};
 setInterval(()=>{tipI++;if(S&&S.sel==null)renderPanel()},9000);
 window.addEventListener('resize',()=>{if(S)render()});
 
+// tools/dailies.py renders ?export=FROM-TO headless and freezes the result into dailies.js
+const EXP=/[?&]export=(\d+)-(\d+)/.exec(location.search);
+if(EXP){
+  const out={};
+  for(let n=+EXP[1];n<=+EXP[2];n++){generate(dailyCfg(n),mulberry32(n*7919+1234567));out[n]=snapshot()}
+  document.title='export';document.body.innerHTML='<pre id="bookle-export"></pre>';
+  $('#bookle-export').textContent=JSON.stringify(out);S=null;
+  return;
+}
 generate(libCfg(),Math.random);render();showTitle();
 })();
 </script>
