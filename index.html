@@ -107,9 +107,11 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .party .book.happy .mouth::after,.tbooks .book .mouth::after{content:"";position:absolute;bottom:-2px;left:2px;width:7px;height:4px;border-radius:50%;background:#ff7a9c}
 .book .badge{position:absolute;top:-12px;right:-8px;font-size:15px;z-index:3;pointer-events:none;animation:pop .35s}
 .book .cloud{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:20px;z-index:3;pointer-events:none;animation:cloud 2s ease-in-out infinite}
-.book.legend{background:linear-gradient(90deg,rgba(0,0,0,.15),transparent 20%,rgba(255,255,255,.55) 45%,transparent 65%),linear-gradient(160deg,#ffe58a,#f5b623 60%,#ffd75e)}
-.book.legend::after{background:rgba(255,255,255,.8)}
-.book.legend .shim{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%);background-size:300% 100%;animation:sweep 2.2s linear infinite;pointer-events:none}
+/* Legendary: genre color stays, a glowing gold seal sits on the lower band */
+.book .seal{position:absolute;left:50%;bottom:calc(12% - 6px);width:15px;height:15px;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff7c8,#ffd75e 45%,#e3a018);color:#8a5600;font-size:9px;font-weight:700;line-height:15px;text-align:center;
+  box-shadow:0 0 0 1.5px #b87a0a,0 0 5px 1px rgba(255,205,70,.6);animation:sealglow 1.8s ease-in-out infinite;pointer-events:none;z-index:2}
+.panel .pb .book .seal{width:18px;height:18px;line-height:18px;font-size:11px;bottom:calc(12% - 7px)}
 /* idle bop, dance & one-shots (delays set inline to stay on the beat) */
 .slot .book.happy{animation:bop 1.154s ease-in-out infinite}
 .slot .book.happy.alt{animation-name:bop2}
@@ -151,8 +153,24 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .fchip i{font-style:normal;font-size:11px;opacity:.7;margin-left:3px}
 .fchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .fchip.on i{opacity:.9}
+.fchip.sort{border-style:dashed}
+.cart .cdiv{flex:0 0 2px;align-self:stretch;margin:4px 3px 0;border-radius:2px;background:rgba(255,246,230,.35)}
 .book.dim{opacity:.22;filter:saturate(.2)}
 .book.match{filter:drop-shadow(0 0 5px var(--accentHi))}
+
+/* ---------- hover info box (mouse only) ---------- */
+.htip{position:fixed;z-index:850;left:0;top:0;width:max-content;max-width:min(290px,calc(100vw - 16px));background:var(--card);color:var(--ink);
+  border:2px solid var(--cardLine);border-left:6px solid var(--tc,var(--accent));border-radius:14px;padding:8px 11px 9px;box-shadow:0 10px 26px rgba(0,0,0,.28);
+  pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .1s,transform .1s;font-size:13px;line-height:1.3}
+.htip.on{opacity:1;transform:none}
+.htip h4{margin:0 0 3px;font-size:14.5px;line-height:1.2}
+.htip .hg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:5px;font-size:12px;color:var(--muted)}
+.htip .hg .tag{font-size:11px;color:var(--ink)}
+.htip .hw{display:flex;gap:6px;align-items:baseline;margin:2px 0}
+.htip .hw .ic{flex:0 0 auto;min-width:22px;text-align:center}
+.htip .hw.ok b{color:#2f9e5b}.htip .hw.no b{color:#d9466f}
+.htip .hs{margin-top:5px;font-size:12px;font-weight:600}
+@media (hover:none){.htip{display:none}}
 
 /* ---------- cart ---------- */
 .cartwrap{position:relative;padding-bottom:16px}
@@ -209,7 +227,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .dexl{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .dexl div{font-size:12px;padding:5px 7px;border-radius:8px;background:var(--bg2);line-height:1.2}
 .dexl div.unk{opacity:.5;letter-spacing:2px}
-.dexl div.gold{background:linear-gradient(120deg,#ffe58a,#f5c84a)!important;color:#5a3d00}
+.dexl div.gold{box-shadow:inset 0 0 0 2px #f5b623,0 0 7px rgba(245,182,35,.65)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .coll{border:2px solid var(--cardLine);border-radius:14px;padding:8px 4px;text-align:center;font-size:11px;line-height:1.2;background:var(--bg2);position:relative}
 .coll .e{font-size:28px;display:block;margin-bottom:3px}
@@ -274,6 +292,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 @keyframes flip{0%{transform:none}25%{transform:translateY(-26px) rotate(180deg)}45%,65%{transform:translateY(-6px) rotate(180deg)}90%{transform:translateY(-14px) rotate(360deg)}100%{transform:rotate(360deg)}}
 @keyframes jump{0%,100%{transform:none}30%{transform:translateY(-18px) rotate(8deg)}60%{transform:translateY(0) scale(1.1,.85)}}
 @keyframes cloud{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-4px)}}
+@keyframes sealglow{0%,100%{box-shadow:0 0 0 1.5px #b87a0a,0 0 4px 1px rgba(255,205,70,.5)}50%{box-shadow:0 0 0 1.5px #b87a0a,0 0 11px 4px rgba(255,215,90,.95)}}
 @keyframes sweep{0%{background-position:150% 0}100%{background-position:-50% 0}}
 @keyframes bubble{0%{opacity:0;transform:translateY(6px) scale(.8)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
 @keyframes ftxt{0%{opacity:0;transform:translate(-50%,10px) scale(.5)}15%{opacity:1;transform:translate(-50%,0) scale(1.2)}30%{transform:translate(-50%,-6px) scale(1)}100%{opacity:0;transform:translate(-50%,-50px)}}
@@ -343,6 +362,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 <div class="overlay hidden" id="modal"><div class="card" id="modalCard"></div></div>
 <div id="toasts"></div>
 <div id="fx"></div>
+<div id="htip" class="htip" role="tooltip" aria-hidden="true"></div>
 
 <script src="dailies.js"></script>
 <script>
@@ -483,7 +503,7 @@ DRAMA.leftOf=DRAMA.like;
 const ARGUE=[["You're humming again.","It's called AMBIANCE."],["Could you NOT?","I'm literally just standing here!"],["Your spine is touching my spine.","That's how shelves WORK!"],["I can hear you breathing.","I'm a BOOK. I don't breathe!"],["You spoiled my ending.","Your ending was OBVIOUS."],["Move over.","No, YOU move over."],["Ugh. You smell like a library.","WE ARE IN A LIBRARY."]];
 const ROWFIGHT=[["There can be only ONE {S} on this shelf.","Then LEAVE."],["Copycat.","I was printed FIRST!"],["This shelf ain't big enough for two {S}s.","It's literally a whole shelf."]];
 const EXCUSES = ["I was on holiday in a different genre.","A toddler was using me as a hat.","I got stuck in a sequel.","The dog read me first.","I fell into a plot hole.","I was helping a detective. Off the record.","I took the scenic route through the sofa cushions.","My bookmark and I needed some time apart.","I was in the bath. Don't ask.","I joined a book club. They wouldn't let me leave.","Someone pressed a flower in me and I needed to process that.","I was propping up a wobbly table. It needed me."];
-const TIPS = ["Tap a book to hear its wish. Drag it onto a shelf.","Shelves have <strong>exactly</strong> enough room. Every slot gets a book!","Drop a book onto another book to <strong>swap</strong> them.","\"Next to\" means directly <strong>left or right</strong>. 👇/👆 books care about the slot below/above.","Grumpy books get dramatic if you leave them grumpy. Very dramatic.","Golden books are <strong>Legendary</strong>: extra wishes, lots of ink, a golden Bookdex edition.","Chain happy placements for a <strong>combo</strong>!","Perfect days drop a 🎁 bookmark charm. Collect all 24!","The library cat is a menace. A beloved menace."];
+const TIPS = ["Tap a book to hear its wish. Drag it onto a shelf.","Shelves have <strong>exactly</strong> enough room. Every slot gets a book!","Drop a book onto another book to <strong>swap</strong> them.","\"Next to\" means directly <strong>left or right</strong>. 👇/👆 books care about the slot below/above.","Grumpy books get dramatic if you leave them grumpy. Very dramatic.","Books with a glowing gold seal ★ are <strong>Legendary</strong>: extra wishes, lots of ink, a golden Bookdex edition.","Chain happy placements for a <strong>combo</strong>!","Perfect days drop a 🎁 bookmark charm. Collect all 24!","The library cat is a menace. A beloved menace."];
 const SHOP = [
   {id:'snacks',name:'Snack Jar',emoji:'🍪',cost:20,desc:"Cookies! Some books want to sit right next to the snacks."},
   {id:'lamp',name:'Reading Lamp',emoji:'💡',cost:35,desc:"Some books are afraid of the dark-ish. Unlocks lamp wishes."},
@@ -776,13 +796,26 @@ const WCAT=[
 let wishFilter=null;
 const inCat=(b,c)=>c.test?c.test(b):b.wishes.some(w=>c.types.includes(w.type));
 const passes=b=>{const c=wishFilter&&WCAT.find(x=>x.id===wishFilter);return !c||inCat(b,c)};
+/* cart sorting: only changes how the cart is shown, never the puzzle */
+const SORTS=[
+  {id:'arrival',label:'⇅ Arrival', key:null},
+  {id:'genre',  label:'⇅ Genre',   key:b=>GENRE_ORDER.indexOf(b.genre)},
+  {id:'wish',   label:'⇅ Wish',    key:b=>{const i=WCAT.findIndex(c=>c.types&&b.wishes.length&&c.types.includes(b.wishes[0].type));return i<0?99:i}},
+];
+const sortMode=()=>SORTS.find(x=>x.id===P.sort)||SORTS[0];
+function sortedCart(ids){
+  const m=sortMode();if(!m.key)return ids.map(id=>({id,group:null}));
+  return ids.map((id,i)=>({id,i,k:m.key(S.books[id])})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>({id:x.id,group:x.k}));
+}
 function renderFilters(){
   const el=$('#filters');if(!el)return;
   const cats=WCAT.map(c=>({c,n:S.books.filter(b=>inCat(b,c)).length})).filter(x=>x.n||x.c.id===wishFilter);
   if(wishFilter&&!cats.some(x=>x.c.id===wishFilter))wishFilter=null;
   el.innerHTML=`<button class="fchip ${wishFilter?'':'on'}" data-f="">All<i>${S.books.length}</i></button>`+
-    cats.map(({c,n})=>`<button class="fchip ${c.id===wishFilter?'on':''}" data-f="${c.id}" title="${c.tip}">${c.label}<i>${n}</i></button>`).join('');
-  el.querySelectorAll('.fchip').forEach(b=>b.onclick=()=>{const f=b.dataset.f||null;wishFilter=f===wishFilter?null:f;SFX.tick();render()});
+    cats.map(({c,n})=>`<button class="fchip ${c.id===wishFilter?'on':''}" data-f="${c.id}" title="${c.tip}">${c.label}<i>${n}</i></button>`).join('')+
+    `<button class="fchip sort" id="sortBtn" title="Sort the cart (tap to switch)">${sortMode().label}</button>`;
+  el.querySelectorAll('.fchip[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f||null;wishFilter=f===wishFilter?null:f;SFX.tick();render()});
+  $('#sortBtn').onclick=()=>{const i=SORTS.indexOf(sortMode());P.sort=SORTS[(i+1)%SORTS.length].id;saveP();SFX.tick();render()};
 }
 function bookEl(b,where){
   const el=document.createElement('div');
@@ -797,13 +830,13 @@ function bookEl(b,where){
     if(S.party)el.style.animationDelay=-((now+c*110)%909)+'ms';
     else{el.style.animationDelay=-(now%1154)+'ms';if(c%2)el.classList.add('alt')}
   }
-  el.innerHTML=(b.legend?'<span class="shim"></span>':'')+`<div class="wi">${b.wishes.map(w=>`<span>${WISH[w.type].icon(w,b)}</span>`).join('')}</div><div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>`+
+  el.innerHTML=(b.legend?'<span class="seal">★</span>':'')+`<div class="wi">${b.wishes.map(w=>`<span>${WISH[w.type].icon(w,b)}</span>`).join('')}</div><div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>`+
     (where==='shelf'?`<span class="badge">${b.happy?'💖':'💢'}</span>`:'')+(where==='shelf'&&b.gloomy&&!b.happy?'<span class="cloud">🌧️</span>':'');
   if(S.sel===b.id&&where!=='panel')el.classList.add('sel');
   return el;
 }
 function render(){
-  const {rows,cols}=S;
+  const {rows,cols}=S;hideTip();
   const slotH=Math.min(92,Math.max(68,Math.floor((Math.min(window.innerWidth,560)-60)/cols*1.75)));
   document.documentElement.style.setProperty('--slotH',slotH+'px');
   const ch=$('#colhead');ch.style.gridTemplateColumns=`repeat(${cols},1fr)`;
@@ -825,7 +858,11 @@ function render(){
   }
   cartEl.innerHTML='';
   const shown=S.cart.filter(id=>passes(S.books[id]));
-  shown.forEach(id=>cartEl.appendChild(bookEl(S.books[id],'cart')));
+  let lastG;
+  sortedCart(shown).forEach(({id,group},n)=>{
+    if(group!=null&&n&&group!==lastG){const d=document.createElement('span');d.className='cdiv';cartEl.appendChild(d)}
+    lastG=group;cartEl.appendChild(bookEl(S.books[id],'cart'));
+  });
   if(!S.cart.length)cartEl.innerHTML=`<div class="empty">${allHappy()?'Everyone is happy! ✨':'Cart empty! Drop books here to un-shelve them.'}</div>`;
   else if(!shown.length)cartEl.innerHTML=`<div class="empty">No books like that on the cart. 🧐<br><small>Tap “All” to see everyone.</small></div>`;
   renderFilters();
@@ -864,6 +901,30 @@ function renderPanel(){
   panelEl.querySelector('.pb').appendChild(bookEl(b,'panel'));
 }
 function allHappy(){return S.books.every(b=>b.happy)}
+
+/* hover info box: genre, legendary, every wish with ✓/✗ at a glance */
+const htip=$('#htip');let htipFor=null;
+function showTip(el){
+  const b=S&&S.books[+el.dataset.id];if(!b){hideTip();return}
+  const g=G(b.genre),shelved=b.pos>=0;
+  const rows=b.wishes.map(w=>{const ok=shelved&&wishOk(b,b.pos,w);
+    return `<div class="hw ${shelved?(ok?'ok':'no'):''}"><span class="ic">${WISH[w.type].icon(w,b)}</span><span><b>${shelved?(ok?'✓ ':'✗ '):''}${esc(WISH[w.type].rule(w,b))}</b></span></div>`}).join('');
+  htip.style.setProperty('--tc',g.color);
+  htip.innerHTML=`<h4>${esc(b.title)}</h4>
+    <div class="hg"><span class="tag" style="background:${g.color}55">${g.emoji} ${g.name}</span>${b.legend?'<span class="tag" style="background:#ffd75e88">★ Legendary</span>':''}${b.wishes.map(w=>`<span class="tag">${WISH[w.type].mood}</span>`).join('')}</div>
+    ${rows}<div class="hs">${!shelved?'📦 On the cart':b.happy?'💖 Happy':'💢 Grumpy'} · <span style="color:var(--muted);font-weight:400">${esc(g.blurb)}</span></div>`;
+  const r=el.getBoundingClientRect(),tw=htip.offsetWidth,th=htip.offsetHeight,vw=innerWidth,vh=innerHeight;
+  let x=Math.min(Math.max(8,r.left+r.width/2-tw/2),vw-tw-8),y=r.top-th-10;
+  if(y<8)y=Math.min(vh-th-8,r.bottom+10);
+  htip.style.left=x+'px';htip.style.top=y+'px';htip.classList.add('on');htipFor=el;
+}
+function hideTip(){htip.classList.remove('on');htipFor=null}
+document.addEventListener('mouseover',e=>{
+  if(drag&&drag.moved){hideTip();return}
+  const bk=e.target.closest&&e.target.closest('#shelf .book,#cart .book');
+  if(bk){if(bk!==htipFor)showTip(bk)}else if(htipFor)hideTip();
+});
+document.addEventListener('mouseleave',hideTip);
 
 /* ================= fx ================= */
 const bookNode=id=>document.querySelector(`#shelf .book[data-id="${id}"],#cart .book[data-id="${id}"]`);
@@ -1079,7 +1140,7 @@ document.addEventListener('pointerdown',e=>{
 document.addEventListener('pointermove',e=>{
   if(!drag)return;
   if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7){
-    drag.moved=true;const b=S.books[drag.id];SFX.pick(b.genre);
+    drag.moved=true;hideTip();const b=S.books[drag.id];SFX.pick(b.genre);
     const g=bookEl(b,'cart');g.classList.add('ghost');document.body.appendChild(g);drag.ghost=g;
     drag.el.classList.add('dragging');
     if(S.sel!==drag.id){S.sel=drag.id;renderPanel()}
@@ -1161,7 +1222,7 @@ function startLib(){
   if(nG>P.gSeen){const news=GENRE_ORDER.slice(P.gSeen,nG).map(g=>`${G(g).emoji} ${G(g).name}`).join(', ');P.gSeen=nG;saveP();setTimeout(()=>toast(`🎉 <b>New genre in town:</b> ${news}! ${G(GENRE_ORDER[nG-1]).blurb}`,5200),1600)}
   if(prevSize&&prevSize!==libSize(P.day).join('x'))setTimeout(()=>toast(`📐 <b>The shelves grew!</b> More books, more wishes, more drama.`,4500),2700);
   if(P.day===3)setTimeout(()=>toast(`😤 Books are getting <b>pickier</b>. Some now have TWO wishes!`,4500),3800);
-  if(P.day===4)setTimeout(()=>toast(`🌟 <b>Legendary</b> golden books can now appear. Extra wishes. Huge ink.`,4500),3800);
+  if(P.day===4)setTimeout(()=>toast(`🌟 <b>Legendary</b> books (look for the glowing gold seal ★) can now appear. Extra wishes. Huge ink.`,4500),3800);
   if(P.day>=10)sticker('day10');
   if(!P.help){P.help=true;saveP();setTimeout(showHelp,300)}
 }
@@ -1375,7 +1436,7 @@ function showTitle(){
   ['romance','comics','poetry','cookbook','scifi','fairy'].forEach((g,i)=>{
     const el=document.createElement('div');el.className='book happy'+(i===3&&Math.random()<.5?' legend':'');el.style.setProperty('--c',G(g).color);el.style.height=(70+(i*7)%25)+'px';
     el.style.animationDelay=(i*110)+'ms';
-    el.innerHTML=(el.classList.contains('legend')?'<span class="shim"></span>':'')+'<div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>';
+    el.innerHTML=(el.classList.contains('legend')?'<span class="seal">★</span>':'')+'<div class="face"><span class="eye l"></span><span class="eye r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>';
     el.onclick=()=>{unlockAudio();SFX.babble('hello there!',g);const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top,['💖','✨','🎶'],5)};
     tb.appendChild(el);
   });

@@ -18,7 +18,7 @@ Then go to http://localhost:8417.
 
 - **Daily Bookle**: one seeded puzzle per day (3×5 shelf, 12 books), the same for everyone. Fewer moves earn a better title, and you can share your result.
 - **📅 Calendar**: every Daily so far, with a ✓ and your title on each solved day. Past days can be played late; they get a ✓ but never change your streak.
-- **My Library**: endless days. The shelves grow from 2×3 to 4×6, books get pickier (two wishes, then golden Legendary books), and you earn 💧 ink for upgrades: snack jar, lamp, fern, fairy lights, a library cat, a rug, a disco ball and a golden bookmark.
+- **My Library**: endless days. The shelves grow from 2×3 to 4×6, books get pickier (two wishes, then Legendary books with a glowing gold seal), and you earn 💧 ink for upgrades: snack jar, lamp, fern, fairy lights, a library cat, a rug, a disco ball and a golden bookmark.
 
 ## Things to collect
 
