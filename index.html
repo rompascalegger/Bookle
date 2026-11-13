@@ -142,6 +142,18 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .banner small{display:block;text-align:center;font-size:.42em;text-shadow:0 2px 0 var(--accent),0 -2px 0 var(--accent),2px 0 0 var(--accent),-2px 0 0 var(--accent)}
 .conf{position:absolute;top:-20px;width:8px;height:13px;border-radius:2px;animation:fall linear forwards}
 
+/* ---------- wish filter ---------- */
+.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:-2px 0 2px;padding:2px}
+.filters::-webkit-scrollbar{display:none}
+.fchip{flex:0 0 auto;border:2px solid var(--cardLine);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 10px;
+  font-family:inherit;font-size:13px;font-weight:600;white-space:nowrap;transition:transform .1s,background .15s}
+.fchip:hover{transform:translateY(-1px)}
+.fchip i{font-style:normal;font-size:11px;opacity:.7;margin-left:3px}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fchip.on i{opacity:.9}
+.book.dim{opacity:.22;filter:saturate(.2)}
+.book.match{filter:drop-shadow(0 0 5px var(--accentHi))}
+
 /* ---------- cart ---------- */
 .cartwrap{position:relative;padding-bottom:16px}
 .cart{min-height:96px;background:linear-gradient(var(--woodHi),var(--wood));border-radius:14px;border:3px solid var(--woodDk);display:flex;align-items:flex-end;
@@ -303,6 +315,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:8px}
     <div class="colhead" id="colhead"></div>
     <div class="shelf" id="shelf"></div>
   </div>
+  <div class="filters" id="filters" role="toolbar" aria-label="Filter books by wish"></div>
   <div class="cartwrap">
     <span class="cartlabel" id="cartLabel">📦 Returns cart</span>
     <div class="cart" id="cart"></div>
@@ -751,6 +764,26 @@ function dailyCfg(num){
 
 /* ================= rendering ================= */
 const shelfEl=$('#shelf'),cartEl=$('#cart'),panelEl=$('#panel');
+/* ---------- wish filter: show only books with a certain kind of wish ---------- */
+const WCAT=[
+  {id:'shelf',  label:'📚 Shelf',    types:['top','bottom','middle','rowOnly','rowWith'], tip:'Wants a certain shelf, or cares who else is on it'},
+  {id:'spot',   label:'📍 Spot',     types:['window','corner','edge'],                     tip:'Wants the window, the quiet corner or an end'},
+  {id:'nbr',    label:'👯 Neighbors', types:['alone','social','like','leftOf','same','dislike','bookends'], tip:'Cares about the books left and right'},
+  {id:'stack',  label:'↕️ Above/Below', types:['above','below'],                          tip:'Cares about the slot above or below'},
+  {id:'obj',    label:'🍵 Objects',   types:['near','nocat'],                              tip:'Wants (or avoids) teacup, snacks, lamp, fern or cat'},
+  {id:'grumpy', label:'💢 Grumpy',    test:b=>b.pos>=0&&!b.happy,                          tip:'Shelved but not happy yet'},
+];
+let wishFilter=null;
+const inCat=(b,c)=>c.test?c.test(b):b.wishes.some(w=>c.types.includes(w.type));
+const passes=b=>{const c=wishFilter&&WCAT.find(x=>x.id===wishFilter);return !c||inCat(b,c)};
+function renderFilters(){
+  const el=$('#filters');if(!el)return;
+  const cats=WCAT.map(c=>({c,n:S.books.filter(b=>inCat(b,c)).length})).filter(x=>x.n||x.c.id===wishFilter);
+  if(wishFilter&&!cats.some(x=>x.c.id===wishFilter))wishFilter=null;
+  el.innerHTML=`<button class="fchip ${wishFilter?'':'on'}" data-f="">All<i>${S.books.length}</i></button>`+
+    cats.map(({c,n})=>`<button class="fchip ${c.id===wishFilter?'on':''}" data-f="${c.id}" title="${c.tip}">${c.label}<i>${n}</i></button>`).join('');
+  el.querySelectorAll('.fchip').forEach(b=>b.onclick=()=>{const f=b.dataset.f||null;wishFilter=f===wishFilter?null:f;SFX.tick();render()});
+}
 function bookEl(b,where){
   const el=document.createElement('div');
   el.className='book'+(b.legend?' legend':'');
@@ -784,15 +817,18 @@ function render(){
       const i=r*cols+c,cell=S.grid[i];
       const s=document.createElement('div');s.className='slot'+(c===0?' sunny':'')+(c===cols-1?' quiet':'');s.dataset.idx=i;
       if(sel&&!cell)s.classList.add('target');
-      if(isB(cell))s.appendChild(bookEl(cell,'shelf'));
+      if(isB(cell)){const be=bookEl(cell,'shelf');if(wishFilter)be.classList.add(passes(cell)?'match':'dim');s.appendChild(be)}
       else if(cell&&cell.t==='decor'){const d=document.createElement('div');d.className='decor '+cell.kind+(wanted.has(cell.kind)?' wanted':'');d.textContent=DECOR[cell.kind].emoji;d.dataset.decor=cell.kind;d.title=DECOR[cell.kind].name;s.appendChild(d)}
       row.appendChild(s);
     }
     shelfEl.appendChild(row);
   }
   cartEl.innerHTML='';
-  S.cart.forEach(id=>cartEl.appendChild(bookEl(S.books[id],'cart')));
+  const shown=S.cart.filter(id=>passes(S.books[id]));
+  shown.forEach(id=>cartEl.appendChild(bookEl(S.books[id],'cart')));
   if(!S.cart.length)cartEl.innerHTML=`<div class="empty">${allHappy()?'Everyone is happy! ✨':'Cart empty! Drop books here to un-shelve them.'}</div>`;
+  else if(!shown.length)cartEl.innerHTML=`<div class="empty">No books like that on the cart. 🧐<br><small>Tap “All” to see everyone.</small></div>`;
+  renderFilters();
   const room=$('#room');room.classList.toggle('party',S.party);room.classList.toggle('disco',S.mode==='lib'&&owns('disco'));
   const li=$('#lights');li.classList.toggle('on',S.mode==='lib'&&owns('lights'));
   if(!li.children.length){const cs=['#ff8fb1','#ffd166','#8fd3ff','#b4f08c','#c9a0ff'];li.innerHTML=Array.from({length:14},(_,i)=>`<b style="background:${cs[i%5]};animation-delay:${i*.13}s"></b>`).join('')}
@@ -808,7 +844,8 @@ function renderHud(){
   $('#sndBtn').textContent=P.sound?'🔊':'🔇';
   $('#musBtn').classList.toggle('off',!P.music);
   $('#dexDot').classList.toggle('on',!!P.newColl);
-  $('#cartLabel').textContent=(S.mode==='daily'?'📦 Today\'s returns':'📦 Returns cart')+` · ${S.cart.length}`;
+  const shownN=S.cart.filter(id=>passes(S.books[id])).length;
+  $('#cartLabel').textContent=(S.mode==='daily'?'📦 Today\'s returns':'📦 Returns cart')+` · ${wishFilter?`${shownN} of ${S.cart.length}`:S.cart.length}`;
   const cb=$('#closeBtn');
   if(S.mode==='daily'){cb.textContent=S.done?'📤 Share result':'✨ Make everyone happy';cb.disabled=!S.done;cb.classList.toggle('pulse',S.done)}
   else{cb.textContent=S.cart.length?`📦 ${S.cart.length} book${S.cart.length>1?'s':''} left`:(happy===n?'🌙 Close for the night ✨':'🌙 Close for the night');cb.disabled=S.cart.length>0;cb.classList.toggle('pulse',!S.cart.length&&happy===n)}
